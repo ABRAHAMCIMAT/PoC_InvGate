@@ -5,9 +5,9 @@ from __future__ import annotations
 import uuid
 
 from backend.agents.models import AgentResult, AgentRole, Conversation
+from backend.invgate.models import Incident
 from backend.llmops.llm import LLM
 from backend.ticketing.base import TicketingProvider
-from backend.invgate.models import Incident
 
 
 class MultiAgentOrchestrator:
@@ -48,9 +48,7 @@ class MultiAgentOrchestrator:
 
         # Políticas
         if conv.requires_approval:
-            results.append(
-                AgentResult(AgentRole.POLICIES, "requiere aprobación del manager")
-            )
+            results.append(AgentResult(AgentRole.POLICIES, "requiere aprobación del manager"))
         else:
             results.append(AgentResult(AgentRole.POLICIES, "no requiere aprobación"))
 

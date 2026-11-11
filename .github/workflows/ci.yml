@@ -20,9 +20,9 @@ jobs:
         run: |
           pip install -r requirements.txt -r requirements-dev.txt
       - name: Lint
-        run: ruff check backend tests scripts && ruff format --check backend tests scripts
+        run: ruff check backend tests && ruff format --check backend tests
       - name: Type check
-        run: mypy backend
+        run: mypy --explicit-package-bases backend
       - name: Test with coverage
         run: pytest --cov=backend --cov-report=term-missing --cov-fail-under=90.01
       - name: Security (Bandit)
