@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from botbuilder.core import (
     ActivityHandler,
@@ -11,7 +10,6 @@ from botbuilder.core import (
     MessageFactory,
     TurnContext,
 )
-from botbuilder.schema import ChannelAccount
 
 from backend.approvals.service import ApprovalDecision, ApprovalService
 from backend.teams.adaptive_card import build_approval_card

@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import json
-import uuid
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from backend.agents.models import AgentRole, Conversation
+from backend.agents.models import Conversation
 from backend.agents.orchestrator import MultiAgentOrchestrator
 from backend.llmops.llm import get_llm
 from backend.ticketing.factory import get_provider

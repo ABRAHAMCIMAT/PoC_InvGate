@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import hmac
-from typing import Any
 
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
