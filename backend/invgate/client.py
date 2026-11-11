@@ -122,7 +122,7 @@ class InvGateClient:
     @staticmethod
     def _backoff(attempt: int) -> None:
         """Espera exponencial con jitter antes de reintentar."""
-        delay = min(0.5 * (2 ** attempt), 8.0) + secrets.randbelow(250) / 1000.0
+        delay = min(0.5 * (2**attempt), 8.0) + secrets.randbelow(250) / 1000.0
         time.sleep(delay)
 
     @staticmethod
