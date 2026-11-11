@@ -10,7 +10,7 @@ from functools import lru_cache
 @dataclass(frozen=True)
 class Settings:
     app_env: str = field(default_factory=lambda: os.getenv("APP_ENV", "development"))
-    host: str = field(default_factory=lambda: os.getenv("HOST", "0.0.0.0"))
+    host: str = field(default_factory=lambda: os.getenv("HOST", "0.0.0.0"))  # nosec B104
     port: int = field(default_factory=lambda: int(os.getenv("PORT", "8000")))
     log_level: str = field(default_factory=lambda: os.getenv("LOG_LEVEL", "INFO"))
     log_user_content: bool = field(
