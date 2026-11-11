@@ -1,0 +1,59 @@
+name: valkiria-invgate
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: valkiria-invgate:${TAG:-local}
+    container_name: valkiria-invgate-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PORT:-8000}:8000"
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      HOST: 0.0.0.0
+      API_KEYS: "${API_KEYS:-}"
+      CORS_ORIGINS: "${CORS_ORIGINS:-localhost:8000}"
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-60}
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-60}
+      DATA_DIR: /app/data
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_USER_CONTENT: ${LOG_USER_CONTENT:-false}
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://host.docker.internal:1337/v1}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      TICKETING_PROVIDER: ${TICKETING_PROVIDER:-demo}
+      STORAGE_BACKEND: ${STORAGE_BACKEND:-file}
+      APPROVAL_TTL_HOURS: ${APPROVAL_TTL_HOURS:-72}
+      INVGATE_BASE_URL: ${INVGATE_BASE_URL:-}
+      INVGATE_API_TOKEN: ${INVGATE_API_TOKEN:-}
+      INVGATE_USERNAME: ${INVGATE_USERNAME:-api}
+      INVGATE_FIELD_MAP: '${INVGATE_FIELD_MAP:-}'
+      INVGATE_VALUE_MAP: '${INVGATE_VALUE_MAP:-}'
+      INVGATE_ACTION_TYPE: ${INVGATE_ACTION_TYPE:-}
+      POC_MANAGER_NAME: ${POC_MANAGER_NAME:-}
+      POC_MANAGER_EMAIL: ${POC_MANAGER_EMAIL:-}
+      NOTIFY_CHANNEL: ${NOTIFY_CHANNEL:-teams}
+      TEAMS_BOT_APP_ID: ${TEAMS_BOT_APP_ID:-}
+      TEAMS_BOT_APP_PASSWORD: ${TEAMS_BOT_APP_PASSWORD:-}
+      TEAMS_TENANT_ID: ${TEAMS_TENANT_ID:-}
+      TEAMS_SERVICE_URL: ${TEAMS_SERVICE_URL:-https://smba.trafficmanager.net/teams/}
+      TEAMS_WORKFLOW_URL: ${TEAMS_WORKFLOW_URL:-}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+      LANGFUSE_HOST: ${LANGFUSE_HOST:-https://cloud.langfuse.com}
+    volumes:
+      - valkiria-data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/api/health',timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  valkiria-data:
