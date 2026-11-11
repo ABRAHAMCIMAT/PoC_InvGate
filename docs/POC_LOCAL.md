@@ -2,7 +2,7 @@
 
 ## Requisitos
 
-- Python 3.11+
+- Python 3.15+
 - Docker (opcional, para `docker compose`)
 
 ## Sin Docker

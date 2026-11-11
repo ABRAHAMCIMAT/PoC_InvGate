@@ -2,11 +2,11 @@
 name = "valkiria-invgate"
 version = "0.1.0"
 description = "Sistema multiagente conversacional para InvGate Service Management (PoC)"
-requires-python = ">=3.11"
+requires-python = ">=3.15"
 
 [tool.ruff]
 line-length = 110
-target-version = "py311"
+target-version = "py315"
 src = ["backend", "tests", "scripts"]
 
 [tool.ruff.lint]
@@ -26,7 +26,7 @@ ignore = ["E501", "S101", "S105", "S106", "S108"]
 known-first-party = ["backend", "scripts"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.15"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
