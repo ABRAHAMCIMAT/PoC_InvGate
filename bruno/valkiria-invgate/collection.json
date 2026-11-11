@@ -1,0 +1,47 @@
+{
+  "version": "1.0",
+  "name": "Valkiria InvGate PoC",
+  "requests": [
+    {
+      "name": "Healthcheck",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/health",
+      "assert": {
+        "statusCode": 200
+      }
+    },
+    {
+      "name": "Chat - crear ticket",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/chat",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "mode": "json",
+        "json": {
+          "message": "No enciende mi laptop"
+        }
+      }
+    },
+    {
+      "name": "Listar conversaciones",
+      "method": "GET",
+      "url": "http://127.0.0.1:8000/api/conversations"
+    },
+    {
+      "name": "Escalar conversación",
+      "method": "POST",
+      "url": "http://127.0.0.1:8000/api/escalate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "mode": "json",
+        "json": {
+          "conversation_id": "REEMPLAZAR"
+        }
+      }
+    }
+  ]
+}
