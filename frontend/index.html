@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Valkiria InvGate PoC</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <h1>Valkiria · InvGate PoC</h1>
+      <p class="subtitle">Asistente multiagente de soporte</p>
+    </header>
+
+    <section class="agents" id="agents">
+      <h2>Agentes</h2>
+      <div class="agent-list" id="agent-list"></div>
+    </section>
+
+    <section class="ticket" id="ticket">
+      <h2>Ticket</h2>
+      <div id="ticket-info" class="ticket-info">Sin ticket aún.</div>
+    </section>
+
+    <section class="chat">
+      <div id="messages" class="messages"></div>
+      <form id="chat-form" class="chat-form">
+        <input id="chat-input" type="text" placeholder="Describe tu problema…" autocomplete="off" />
+        <button type="submit">Enviar</button>
+      </form>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
