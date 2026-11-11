@@ -12,7 +12,7 @@ Replicar el PoC multiagente de `valkiria_servitonic` sustituyendo ServiceTonic p
 
 ---
 
-## Fase 0 — Fundaciones y esqueleto
+## Fase 0 — Fundaciones y esqueleto ✅
 
 **Objetivo:** Repositorio funcional con CI y estructura base.
 
@@ -23,7 +23,7 @@ Replicar el PoC multiagente de `valkiria_servitonic` sustituyendo ServiceTonic p
 - CI (`.github/workflows/ci.yml`): lint, tipos, tests, Bandit, pip-audit, build Docker.
 - **Criterio de aceptación:** `make local-up` levanta el API y pasa healthcheck; CI verde.
 
-## Fase 1 — Adaptador InvGate (núcleo)
+## Fase 1 — Adaptador InvGate (núcleo) ✅
 
 **Objetivo:** Cliente de API InvGate con CRUD de tickets y catálogos.
 
@@ -35,7 +35,7 @@ Replicar el PoC multiagente de `valkiria_servitonic` sustituyendo ServiceTonic p
 - Tests unitarios con mock del cliente.
 - **Criterio de aceptación:** crear/consultar/actualizar/comentar un ticket real en InvGate por API; 100 % de los tests del adaptador en verde.
 
-## Fase 2 — Agentes multiagente
+## Fase 2 — Agentes multiagente ✅
 
 **Objetivo:** Flujo conversacional completo con los 8 agentes.
 
@@ -45,7 +45,7 @@ Replicar el PoC multiagente de `valkiria_servitonic` sustituyendo ServiceTonic p
 - Endpoints `/api/chat`, `/api/chat/stream` (SSE por agente), `/api/conversations`, `/api/escalate`.
 - **Criterio de aceptación:** un caso de extremo a extremo (solicitud → clasificación → creación de ticket en InvGate → seguimiento) con mock; semáforo de agentes funcionando.
 
-## Fase 3 — Aprobaciones InvGate + Microsoft Teams
+## Fase 3 — Aprobaciones InvGate + Microsoft Teams ✅ (código)
 
 **Objetivo:** Aprobaciones interactivas usando las nativas de InvGate.
 
@@ -55,14 +55,14 @@ Replicar el PoC multiagente de `valkiria_servitonic` sustituyendo ServiceTonic p
 - Bot de Teams (Bot Framework), túnel HTTPS temporal, `NOTIFY_CHANNEL=teams`.
 - **Criterio de aceptación:** el manager aprueba/rechaza desde Teams y el ticket en InvGate refleja la decisión; segundo clic sin efecto.
 
-## Fase 4 — Frontend y chat web
+## Fase 4 — Frontend y chat web ✅
 
 **Objetivo:** Interfaz de chat web (estilo Jan).
 
 - `frontend/index.html`: chat, tarjeta de estado del ticket con observaciones del manager, semáforo de agentes (🟢/🟡/🔴).
 - **Criterio de aceptación:** el solicitante conversa, ve el estado del ticket y las observaciones.
 
-## Fase 5 — Seguridad y observabilidad
+## Fase 5 — Seguridad y observabilidad ✅
 
 **Objetivo:** Control total y capa de seguridad.
 
@@ -70,7 +70,7 @@ Replicar el PoC multiagente de `valkiria_servitonic` sustituyendo ServiceTonic p
 - Telemetría JSONL modelo-agnóstica, dashboard de 4 dimensiones (negocio/ITSM, rendimiento, costos, orquestación), Langfuse opcional.
 - **Criterio de aceptación:** dashboard poblado con telemetría de demo; endpoints protegidos por rol.
 
-## Fase 6 — Calidad, pruebas y cierre
+## Fase 6 — Calidad, pruebas y cierre 🔄
 
 **Objetivo:** Cerrar el PoC con 10/10 criterios.
 

@@ -9,8 +9,12 @@ Mantener la arquitectura multiagente, las aprobaciones en Microsoft Teams, la ca
 ## Estado
 
 - **Fase 0 — Fundaciones y esqueleto:** ✅ completada (CI, estructura, healthcheck).
-- **Fase 1 — Adaptador InvGate:** en desarrollo.
-- Fases 2–6: pendientes (ver `docs/PLAN.md`).
+- **Fase 1 — Adaptador InvGate:** ✅ completada (cliente, mapeo, proveedores demo/simulated/invgate).
+- **Fase 2 — Agentes multiagente:** ✅ completada (8 agentes, LLM mock, endpoints de chat).
+- **Fase 3 — Aprobaciones + Teams:** ✅ completada (código; validación real pendiente).
+- **Fase 4 — Frontend web:** ✅ completada (chat, semáforo de agentes, tarjeta de ticket).
+- **Fase 5 — Seguridad y observabilidad:** ✅ completada (RBAC, rate limit, PII, telemetría).
+- **Fase 6 — Calidad y cierre:** 🔄 en curso (docs y colección de Bruno listas).
 
 ## Estructura
 
@@ -43,4 +47,11 @@ make typecheck
 make coverage
 ```
 
-Plan detallado: [`docs/PLAN.md`](docs/PLAN.md).
+## Documentación
+
+- Plan incremental: [`docs/PLAN.md`](docs/PLAN.md)
+- Ejecución local: [`docs/POC_LOCAL.md`](docs/POC_LOCAL.md)
+- Estado del desarrollo: [`docs/ESTADO_DESARROLLO.md`](docs/ESTADO_DESARROLLO.md)
+- Evidencias: [`docs/POC_EVIDENCIAS.md`](docs/POC_EVIDENCIAS.md)
+- Arquitectura C4: [`docs/ARQUITECTURA_C4.md`](docs/ARQUITECTURA_C4.md)
+- LLMOps: [`docs/LLMOPS.md`](docs/LLMOPS.md)
