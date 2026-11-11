@@ -54,7 +54,5 @@ class ApprovalBot(ActivityHandler):
     async def send_approval(self, turn_context: TurnContext, approval_id: str) -> None:
         req = self.approvals.get(approval_id)
         card = build_approval_card(req)
-        activity = MessageFactory.attachment(
-            CardFactory.adaptive_card(card)
-        )
+        activity = MessageFactory.attachment(CardFactory.adaptive_card(card))
         await turn_context.send_activity(activity)

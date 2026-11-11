@@ -47,7 +47,7 @@ class InvGateClient:
                 "Content-Type": "application/json",
             },
         )
-        self._client.auth = (username, api_token)
+        self._client.auth = httpx.BasicAuth(username, api_token)
 
     def _request(self, method: str, path: str, **kwargs: Any) -> Any:
         url = f"/api/v1{path}"

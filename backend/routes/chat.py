@@ -46,9 +46,7 @@ def chat(req: ChatRequest) -> dict[str, Any]:
         "priority": conv.priority,
         "requires_approval": conv.requires_approval,
         "escalated": conv.escalated,
-        "agents": [
-            {"role": r.role.value, "output": r.output, "status": r.status} for r in results
-        ],
+        "agents": [{"role": r.role.value, "output": r.output, "status": r.status} for r in results],
         "reply": conv.messages[-1]["content"],
     }
 
@@ -108,7 +106,5 @@ def escalate(req: EscalateRequest) -> dict[str, Any]:
     if conv is None:
         raise HTTPException(status_code=404, detail="conversación no encontrada")
     conv.escalated = True
-    conv.messages.append(
-        {"role": "assistant", "content": "Solicitud escalada a Nivel 2."}
-    )
+    conv.messages.append({"role": "assistant", "content": "Solicitud escalada a Nivel 2."})
     return {"conversation_id": conv.id, "escalated": True}

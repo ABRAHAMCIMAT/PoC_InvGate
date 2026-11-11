@@ -17,17 +17,13 @@ def test_default_provider_is_demo() -> None:
 
 def test_simulated_provider() -> None:
     settings = Settings()
-    settings = settings.__class__(
-        **{**settings.__dict__, "ticketing_provider": "simulated"}
-    )
+    settings = settings.__class__(**{**settings.__dict__, "ticketing_provider": "simulated"})
     assert isinstance(get_provider(settings), SimulatedProvider)
 
 
 def test_invgate_provider_requires_credentials() -> None:
     settings = Settings()
-    settings = settings.__class__(
-        **{**settings.__dict__, "ticketing_provider": "invgate"}
-    )
+    settings = settings.__class__(**{**settings.__dict__, "ticketing_provider": "invgate"})
     with pytest.raises(ValueError):
         get_provider(settings)
 

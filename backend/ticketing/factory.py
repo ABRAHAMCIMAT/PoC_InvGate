@@ -18,9 +18,7 @@ def get_provider(settings: Settings | None = None) -> TicketingProvider:
     provider = settings.ticketing_provider
     if provider == "invgate":
         if not settings.invgate_base_url or not settings.invgate_api_token:
-            raise ValueError(
-                "TICKETING_PROVIDER=invgate requiere INVGATE_BASE_URL e INVGATE_API_TOKEN"
-            )
+            raise ValueError("TICKETING_PROVIDER=invgate requiere INVGATE_BASE_URL e INVGATE_API_TOKEN")
         client = InvGateClient(
             base_url=settings.invgate_base_url,
             api_token=settings.invgate_api_token,
