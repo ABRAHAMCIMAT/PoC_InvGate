@@ -17,7 +17,7 @@ def build_approval_card(req: ApprovalRequest, open_url: str | None = None) -> di
     """
     card: dict[str, Any] = {
         "type": "AdaptiveCard",
-        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "$schema": "https://adaptivecards.io/schemas/adaptive-card.json",
         "version": "1.4",
         "body": [
             {"type": "TextBlock", "size": "Medium", "weight": "Bolder", "text": "Aprobación requerida"},
@@ -76,7 +76,7 @@ def build_result_card(req: ApprovalRequest) -> dict[str, Any]:
         )
     return {
         "type": "AdaptiveCard",
-        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "$schema": "https://adaptivecards.io/schemas/adaptive-card.json",
         "version": "1.4",
         "body": body,
     }

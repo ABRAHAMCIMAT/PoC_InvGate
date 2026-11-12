@@ -136,7 +136,9 @@ async function load() {
   }
 }
 
-$("refresh").addEventListener("click", load);
-$("window").addEventListener("change", load);
-load();
-setInterval(load, 30000);
+// load() maneja sus propios errores; el .catch evita promesas rechazadas sin atender.
+const refresh = () => load().catch(() => {});
+$("refresh").addEventListener("click", refresh);
+$("window").addEventListener("change", refresh);
+refresh();
+setInterval(refresh, 30000);

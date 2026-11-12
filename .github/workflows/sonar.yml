@@ -22,7 +22,9 @@ jobs:
         with:
           python-version: "3.15"
       - name: Install dependencies
-        run: pip install -r requirements.txt -r requirements-dev.txt
+        # Solo wheels y versiones fijadas en el lock: no se ejecutan scripts de instalación.
+        run: |
+          pip install --only-binary :all: -r requirements-dev.lock
       - name: Run tests with coverage
         run: pytest --cov=backend --cov=scripts --cov-report=xml:coverage.xml --cov-fail-under=90.01
       - name: Missing SONAR_TOKEN

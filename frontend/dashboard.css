@@ -1,9 +1,5 @@
 .app.wide { max-width: 1120px; }
 
-.sr-only {
-  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
-}
-
 .nav select, .nav button {
   padding: 6px 10px; border: 1px solid #cbd2d9; border-radius: 6px; background: #fff; font: inherit;
 }
