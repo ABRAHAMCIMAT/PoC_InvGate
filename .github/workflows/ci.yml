@@ -18,7 +18,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt -r requirements-dev.txt
+          pip install --only-binary :all: -r requirements.txt -r requirements-dev.txt
       - name: Lint
         run: ruff check backend tests && ruff format --check backend tests
       - name: Type check
