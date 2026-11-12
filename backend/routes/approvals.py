@@ -4,14 +4,23 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from backend.approvals.service import ApprovalDecision, ApprovalForbiddenError
-from backend.runtime import Runtime, get_runtime
-from backend.security.auth import require_role
+from backend.runtime import RuntimeDep
+from backend.security.auth import AUTH_RESPONSES, AdminRole, AgentRole
 
-router = APIRouter(prefix="/api/approvals", tags=["approvals"])
+router = APIRouter(prefix="/api/approvals", tags=["approvals"], responses=AUTH_RESPONSES)
+
+APPROVAL_NOT_FOUND = "aprobación no encontrada"
+NOT_FOUND: dict[int | str, dict[str, Any]] = {404: {"description": "La aprobación no existe"}}
+DECISION_RESPONSES: dict[int | str, dict[str, Any]] = {
+    **NOT_FOUND,
+    403: {"description": "Quien decide no es el manager asignado"},
+    409: {"description": "InvGate no tiene una aprobación pendiente para el ticket"},
+    410: {"description": "La aprobación venció sin respuesta"},
+}
 
 
 class DecisionRequest(BaseModel):
@@ -22,29 +31,20 @@ class DecisionRequest(BaseModel):
 
 
 @router.get("")
-def list_approvals(
-    _: str = Depends(require_role("agent")), rt: Runtime = Depends(get_runtime)
-) -> list[dict[str, Any]]:
+def list_approvals(_: AgentRole, rt: RuntimeDep) -> list[dict[str, Any]]:
     return [r.as_dict() for r in rt.approvals.list()]
 
 
-@router.get("/{approval_id}")
-def get_approval(
-    approval_id: str, _: str = Depends(require_role("agent")), rt: Runtime = Depends(get_runtime)
-) -> dict[str, Any]:
+@router.get("/{approval_id}", responses=NOT_FOUND)
+def get_approval(approval_id: str, _: AgentRole, rt: RuntimeDep) -> dict[str, Any]:
     try:
         return rt.approvals.get(approval_id).as_dict()
     except KeyError as exc:
-        raise HTTPException(status_code=404, detail="aprobación no encontrada") from exc
+        raise HTTPException(status_code=404, detail=APPROVAL_NOT_FOUND) from exc
 
 
-@router.post("/{approval_id}/decision")
-def decide(
-    approval_id: str,
-    body: DecisionRequest,
-    role: str = Depends(require_role("admin")),
-    rt: Runtime = Depends(get_runtime),
-) -> dict[str, Any]:
+@router.post("/{approval_id}/decision", responses=DECISION_RESPONSES)
+def decide(approval_id: str, body: DecisionRequest, role: AdminRole, rt: RuntimeDep) -> dict[str, Any]:
     """Registra la decisión del manager. Un segundo intento devuelve `changed: false`."""
     try:
         before = rt.approvals.get(approval_id).decided
@@ -56,7 +56,7 @@ def decide(
             user_email=body.user_email,
         )
     except KeyError as exc:
-        raise HTTPException(status_code=404, detail="aprobación no encontrada") from exc
+        raise HTTPException(status_code=404, detail=APPROVAL_NOT_FOUND) from exc
     except TimeoutError as exc:
         raise HTTPException(status_code=410, detail="la aprobación expiró") from exc
     except ApprovalForbiddenError as exc:

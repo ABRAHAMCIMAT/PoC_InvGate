@@ -7,7 +7,12 @@ const usd = new Intl.NumberFormat("es-MX", { style: "currency", currency: "USD",
 
 function headers() {
   let key = "";
-  try { key = localStorage.getItem("valkiria.apiKey") || ""; } catch (_) { /* nada */ }
+  try {
+    key = localStorage.getItem("valkiria.apiKey") || "";
+  } catch (err) {
+    // Sin almacenamiento disponible se consulta sin API key.
+    console.warn("No se pudo leer la API key guardada:", err);
+  }
   return key ? { Authorization: `Bearer ${key}` } : {};
 }
 
@@ -117,7 +122,8 @@ async function load() {
   status.className = "status";
   status.textContent = "Cargando…";
   try {
-    const resp = await fetch(`/api/metrics${hours ? `?hours=${hours}` : ""}`, { headers: headers() });
+    const query = hours ? `?hours=${encodeURIComponent(hours)}` : "";
+    const resp = await fetch(`/api/metrics${query}`, { headers: headers() });
     if (!resp.ok) {
       status.className = "status error";
       status.textContent = resp.status === 401 || resp.status === 403
@@ -130,14 +136,17 @@ async function load() {
     status.textContent = m.negocio.conversaciones
       ? `Actualizado ${new Date().toLocaleTimeString("es-MX")}.`
       : "Aún no hay conversaciones en este periodo. Ejecuta scripts/seed_demo_telemetry.py para poblarlo.";
-  } catch (_) {
+  } catch (err) {
+    console.warn("No se pudieron cargar las métricas:", err);
     status.className = "status error";
     status.textContent = "No hay conexión con el servidor.";
   }
 }
 
-// load() maneja sus propios errores; el .catch evita promesas rechazadas sin atender.
-const refresh = () => load().catch(() => {});
+// load() maneja sus propios errores; el .catch registra cualquier fallo inesperado.
+function refresh() {
+  load().catch((err) => console.error("Fallo inesperado del dashboard:", err));
+}
 $("refresh").addEventListener("click", refresh);
 $("window").addEventListener("change", refresh);
 refresh();

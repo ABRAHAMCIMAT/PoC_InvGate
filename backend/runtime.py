@@ -11,9 +11,10 @@ import os
 import time
 from dataclasses import dataclass, field
 from functools import lru_cache
-from typing import Any
+from typing import Annotated, Any
 
 from botbuilder.core import BotFrameworkAdapter, BotFrameworkAdapterSettings
+from fastapi import Depends
 
 from backend.agents.knowledge import KnowledgeBase
 from backend.agents.models import AgentResult, Conversation
@@ -241,3 +242,6 @@ def get_runtime() -> Runtime:
 
 def reset_runtime() -> None:
     get_runtime.cache_clear()
+
+
+RuntimeDep = Annotated[Runtime, Depends(get_runtime)]

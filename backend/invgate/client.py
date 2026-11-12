@@ -25,6 +25,14 @@ logger = logging.getLogger(__name__)
 
 RETRY_STATUS = (429, 500, 502, 503, 504)
 
+# Recursos de la API v1 (https://releases.invgate.com/service-desk/api/)
+INCIDENT = "/incident"
+INCIDENT_COMMENT = "/incident.comment"
+INCIDENT_APPROVAL = "/incident.approval"
+DATE_FORMAT = "iso8601"
+# Campos del incidente que se guardan como texto aunque InvGate los devuelva numéricos
+STRING_FIELDS = ("id", "number", "category", "priority", "requester", "assignee", "helpdesk")
+
 # Campos del dominio que en InvGate se llaman distinto. INVGATE_FIELD_MAP los sobreescribe.
 DEFAULT_FIELD_MAP = {
     "category": "category_id",
@@ -169,14 +177,14 @@ class InvGateClient:
     # ------------------------------------------------------------- Incidentes
     def create_incident(self, incident: Incident) -> Incident:
         payload = {**self.defaults, **self._to_invgate(incident)}
-        data = self._request("POST", "/incident", json=payload)
+        data = self._request("POST", INCIDENT, json=payload)
         request_id = self._extract_id(data)
         if request_id is None:
             raise InvGateError(f"POST /incident no devolvió request_id: {data}")
         return incident.model_copy(update={"id": request_id, "number": request_id})
 
     def get_incident(self, incident_id: str) -> Incident:
-        data = self._request("GET", "/incident", params={"id": incident_id, "date_format": "iso8601"})
+        data = self._request("GET", INCIDENT, params={"id": incident_id, "date_format": DATE_FORMAT})
         if isinstance(data, list):
             if not data:
                 raise InvGateNotFoundError(f"Incidente no encontrado: {incident_id}")
@@ -185,7 +193,7 @@ class InvGateClient:
 
     def update_incident(self, incident_id: str, incident: Incident) -> Incident:
         payload = {"id": incident_id, **self._to_invgate(incident)}
-        self._request("PUT", "/incident", json=payload)
+        self._request("PUT", INCIDENT, json=payload)
         return incident.model_copy(update={"id": incident_id})
 
     def list_incidents(self, limit: int = 50) -> list[Incident]:
@@ -209,13 +217,13 @@ class InvGateClient:
         }
         if author_id is not None:
             payload["author_id"] = author_id
-        data = self._request("POST", "/incident.comment", json=payload)
+        data = self._request("POST", INCIDENT_COMMENT, json=payload)
         comment_id = self._extract_id(data, keys=("id", "comment_id"))
         return Comment(id=comment_id, incident_id=incident_id, body=body, author=str(author_id or "") or None)
 
     def list_comments(self, incident_id: str) -> list[Comment]:
         data = self._request(
-            "GET", "/incident.comment", params={"request_id": incident_id, "date_format": "iso8601"}
+            "GET", INCIDENT_COMMENT, params={"request_id": incident_id, "date_format": DATE_FORMAT}
         )
         comments: list[Comment] = []
         for item in self._items(data):
@@ -248,16 +256,16 @@ class InvGateClient:
         )
 
     def list_approvals(self, incident_id: str, only_pending: bool = False) -> list[dict[str, Any]]:
-        params: dict[str, Any] = {"request_id": incident_id, "date_format": "iso8601"}
+        params: dict[str, Any] = {"request_id": incident_id, "date_format": DATE_FORMAT}
         if only_pending:
             params["only_pending"] = True
-        return self._items(self._request("GET", "/incident.approval", params=params))
+        return self._items(self._request("GET", INCIDENT_APPROVAL, params=params))
 
     def accept_approval(self, approval_id: str, user_id: str, note: str | None = None) -> None:
-        self._vote("/incident.approval.accept", approval_id, user_id, note)
+        self._vote(f"{INCIDENT_APPROVAL}.accept", approval_id, user_id, note)
 
     def reject_approval(self, approval_id: str, user_id: str, note: str | None = None) -> None:
-        self._vote("/incident.approval.reject", approval_id, user_id, note)
+        self._vote(f"{INCIDENT_APPROVAL}.reject", approval_id, user_id, note)
 
     def _vote(self, path: str, approval_id: str, user_id: str, note: str | None) -> None:
         payload: dict[str, Any] = {"approval_id": approval_id, "user_id": user_id}
@@ -307,35 +315,53 @@ class InvGateClient:
         return payload
 
     def _parse_incident(self, data: dict[str, Any]) -> Incident:
-        domain: dict[str, Any] = {}
-        extra: dict[str, Any] = {}
-        known = set(Incident.model_fields)
-        for key, value in data.items():
-            name = self.fields.from_invgate(key)
-            if name in known and name != "extra":
-                domain[name] = self.values.from_invgate(name, value)
-            else:
-                extra[key] = value
+        domain, extra = self._split_fields(data)
         if "updated_at" not in domain and "last_update" in data:
             domain["updated_at"] = data["last_update"]
-        status = domain.get("status")
-        try:
-            domain["status"] = IncidentStatus(str(status)) if status is not None else IncidentStatus.NEW
-        except ValueError:
-            extra["status_id"] = status
-            domain["status"] = IncidentStatus.OPEN
-        for key in ("id", "number", "category", "priority", "requester", "assignee", "helpdesk"):
-            if key in domain and domain[key] is not None:
+        domain["status"] = self._parse_status(domain.get("status"), extra)
+        for key in STRING_FIELDS:
+            if domain.get(key) is not None:
                 domain[key] = str(domain[key])
         if "type" in domain:
-            try:
-                domain["type"] = IncidentType(str(domain["type"]))
-            except ValueError:
-                extra["type_id"] = domain.pop("type")
+            parsed_type = self._parse_type(domain.pop("type"), extra)
+            if parsed_type is not None:
+                domain["type"] = parsed_type
         domain.setdefault("number", _str(data.get("pretty_id")) or domain.get("id"))
         domain["title"] = domain.get("title") or f"Incidente {domain.get('id', '')}".strip()
         domain["description"] = domain.get("description") or ""
         return Incident(**domain, extra=extra)
+
+    def _split_fields(self, data: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+        """Separa los campos que el dominio conoce (ya traducidos) de los propios de InvGate."""
+        known = set(Incident.model_fields) - {"extra"}
+        domain: dict[str, Any] = {}
+        extra: dict[str, Any] = {}
+        for key, value in data.items():
+            name = self.fields.from_invgate(key)
+            if name in known:
+                domain[name] = self.values.from_invgate(name, value)
+            else:
+                extra[key] = value
+        return domain, extra
+
+    @staticmethod
+    def _parse_status(status: Any, extra: dict[str, Any]) -> IncidentStatus:
+        """Un estado que el mapeo no traduce se conserva en `extra` y se trata como abierto."""
+        if status is None:
+            return IncidentStatus.NEW
+        try:
+            return IncidentStatus(str(status))
+        except ValueError:
+            extra["status_id"] = status
+            return IncidentStatus.OPEN
+
+    @staticmethod
+    def _parse_type(value: Any, extra: dict[str, Any]) -> IncidentType | None:
+        try:
+            return IncidentType(str(value))
+        except ValueError:
+            extra["type_id"] = value
+            return None
 
     @staticmethod
     def _items(data: Any) -> list[dict[str, Any]]:

@@ -21,10 +21,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.15"
+      # Solo wheels con hash verificado (requirements-dev.lock): no se ejecutan scripts de instalación.
       - name: Install dependencies
-        # Solo wheels y versiones fijadas en el lock: no se ejecutan scripts de instalación.
         run: |
-          pip install --only-binary :all: -r requirements-dev.lock
+          pip install --require-hashes --only-binary :all: -r requirements-dev.lock
       - name: Run tests with coverage
         run: pytest --cov=backend --cov=scripts --cov-report=xml:coverage.xml --cov-fail-under=90.01
       - name: Missing SONAR_TOKEN

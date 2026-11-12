@@ -11,8 +11,9 @@ from backend.ticketing.demo import DemoProvider
 
 def test_request_requires_id() -> None:
     service = ApprovalService(DemoProvider())
+    incident = Incident(title="x")
     with pytest.raises(ValueError):
-        service.request_approval(Incident(title="x"), "M", "m@x.com", "r")
+        service.request_approval(incident, "M", "m@x.com", "r")
 
 
 def test_expired_raises() -> None:

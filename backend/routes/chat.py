@@ -8,19 +8,22 @@ import time
 from collections.abc import Iterator
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from backend.agents.models import AgentResult, Conversation
-from backend.runtime import Runtime, get_runtime
-from backend.security.auth import require_role
+from backend.runtime import Runtime, RuntimeDep
+from backend.security.auth import AUTH_RESPONSES, AgentRole, UserRole
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api", tags=["chat"])
+router = APIRouter(prefix="/api", tags=["chat"], responses=AUTH_RESPONSES)
 
 MAX_MESSAGE = 4000
+EMPTY_MESSAGE: dict[int | str, dict[str, Any]] = {400: {"description": "El mensaje está vacío"}}
+NOT_FOUND: dict[int | str, dict[str, Any]] = {404: {"description": "La conversación no existe"}}
+CONVERSATION_NOT_FOUND = "conversación no encontrada"
 
 
 class ChatRequest(BaseModel):
@@ -80,12 +83,8 @@ def _validate(req: ChatRequest) -> str:
     return text
 
 
-@router.post("/chat")
-def chat(
-    req: ChatRequest,
-    role: str = Depends(require_role("user")),
-    rt: Runtime = Depends(get_runtime),
-) -> dict[str, Any]:
+@router.post("/chat", responses=EMPTY_MESSAGE)
+def chat(req: ChatRequest, role: UserRole, rt: RuntimeDep) -> dict[str, Any]:
     text = _validate(req)
     started = time.time()
     orch = rt.orchestrator()
@@ -102,12 +101,8 @@ def chat(
     }
 
 
-@router.post("/chat/stream")
-def chat_stream(
-    req: ChatRequest,
-    role: str = Depends(require_role("user")),
-    rt: Runtime = Depends(get_runtime),
-) -> StreamingResponse:
+@router.post("/chat/stream", responses=EMPTY_MESSAGE)
+def chat_stream(req: ChatRequest, role: UserRole, rt: RuntimeDep) -> StreamingResponse:
     """SSE: un evento por agente en cuanto termina, y uno final con el resumen."""
     text = _validate(req)
     started = time.time()
@@ -139,19 +134,15 @@ def chat_stream(
 
 
 @router.get("/conversations")
-def list_conversations(
-    _: str = Depends(require_role("user")), rt: Runtime = Depends(get_runtime)
-) -> list[dict[str, Any]]:
+def list_conversations(_: UserRole, rt: RuntimeDep) -> list[dict[str, Any]]:
     return [_summary(c) for c in rt.conversations.values()]
 
 
-@router.get("/conversations/{conversation_id}")
-def get_conversation(
-    conversation_id: str, _: str = Depends(require_role("user")), rt: Runtime = Depends(get_runtime)
-) -> dict[str, Any]:
+@router.get("/conversations/{conversation_id}", responses=NOT_FOUND)
+def get_conversation(conversation_id: str, _: UserRole, rt: RuntimeDep) -> dict[str, Any]:
     conv = rt.conversations.get(conversation_id)
     if conv is None:
-        raise HTTPException(status_code=404, detail="conversación no encontrada")
+        raise HTTPException(status_code=404, detail=CONVERSATION_NOT_FOUND)
     return {
         **_summary(conv),
         "messages": conv.messages,
@@ -160,13 +151,11 @@ def get_conversation(
     }
 
 
-@router.post("/escalate")
-def escalate(
-    req: EscalateRequest, role: str = Depends(require_role("agent")), rt: Runtime = Depends(get_runtime)
-) -> dict[str, Any]:
+@router.post("/escalate", responses=NOT_FOUND)
+def escalate(req: EscalateRequest, role: AgentRole, rt: RuntimeDep) -> dict[str, Any]:
     conv = rt.conversations.get(req.conversation_id)
     if conv is None:
-        raise HTTPException(status_code=404, detail="conversación no encontrada")
+        raise HTTPException(status_code=404, detail=CONVERSATION_NOT_FOUND)
     level = max(conv.escalation_level or 1, 1) + 1 if conv.escalated else 2
     level = min(level, 3)
     conv.escalated, conv.escalation_level = True, level

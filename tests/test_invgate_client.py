@@ -48,7 +48,8 @@ def test_create_incident_maps_fields_and_defaults() -> None:
     assert seen["path"] == "/api/v1/incident"
     body = seen["body"]
     assert body["title"] == "Hola"
-    assert body["creator_id"] == 1 and body["customer_id"] == 2
+    assert body["creator_id"] == 1
+    assert body["customer_id"] == 2
     assert body["category_id"] == "40"  # el mapeo pisa el valor por defecto
     assert body["priority_id"] == "3"
     assert body["type_id"] == "2"
@@ -58,8 +59,9 @@ def test_create_incident_maps_fields_and_defaults() -> None:
 
 def test_create_without_request_id_fails() -> None:
     client = _client(httpx.MockTransport(lambda r: httpx.Response(200, json={"status": "ERROR"})))
+    incident = Incident(title="x")
     with pytest.raises(InvGateError):
-        client.create_incident(Incident(title="x"))
+        client.create_incident(incident)
 
 
 def test_get_incident_parses_invgate_fields() -> None:

@@ -120,12 +120,13 @@ def test_oauth_token_cached_and_refreshed(monkeypatch) -> None:
 
 
 def test_oauth_errors(monkeypatch) -> None:
+    oauth = OAuth2ClientCredentials("u", "i", "s")
     monkeypatch.setattr("backend.invgate.client.httpx.post", lambda *a, **k: httpx.Response(400))
     with pytest.raises(InvGateAuthError):
-        OAuth2ClientCredentials("u", "i", "s").token()
+        oauth.token()
     monkeypatch.setattr("backend.invgate.client.httpx.post", lambda *a, **k: httpx.Response(200, json={}))
     with pytest.raises(InvGateAuthError):
-        OAuth2ClientCredentials("u", "i", "s").token()
+        oauth.token()
 
 
 def _settings(**kw) -> Settings:
@@ -156,16 +157,22 @@ def test_factory_oauth_and_defaults() -> None:
     assert custom._client.auth.token_url == "https://a/token"
 
 
-def test_factory_errors() -> None:
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {},
+        {"invgate_base_url": "https://a"},
+        {"invgate_base_url": "https://a", "invgate_api_token": "t", "invgate_defaults": "{"},
+        {"invgate_base_url": "https://a", "invgate_api_token": "t", "invgate_defaults": "[1]"},
+    ],
+)
+def test_factory_rejects_incomplete_config(overrides) -> None:
+    settings = _settings(**overrides)
     with pytest.raises(ValueError):
-        build_invgate_client(_settings())
-    with pytest.raises(ValueError):
-        build_invgate_client(_settings(invgate_base_url="https://a"))
-    for bad in ("{", "[1]"):
-        with pytest.raises(ValueError):
-            build_invgate_client(
-                _settings(invgate_base_url="https://a", invgate_api_token="t", invgate_defaults=bad)
-            )
+        build_invgate_client(settings)
+
+
+def test_factory_builds_invgate_provider() -> None:
     provider = get_provider(
         _settings(invgate_base_url="https://a", invgate_api_token="t", invgate_author_id="9")
     )

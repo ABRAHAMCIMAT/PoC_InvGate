@@ -110,7 +110,8 @@ def test_unparseable_classification_is_yellow() -> None:
     conv, results = orch.handle("mensaje extraño")
     statuses = _status(results)
     assert statuses["clasificador"] == "warning"
-    assert conv.category == "general" and conv.priority == "media"
+    assert conv.category == "general"
+    assert conv.priority == "media"
     assert statuses["diagnostico"] == "ok"  # con LLM real, el diagnóstico es su respuesta
     assert statuses["conocimiento"] == "warning"
 

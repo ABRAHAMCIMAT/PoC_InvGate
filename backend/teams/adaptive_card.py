@@ -7,6 +7,7 @@ from typing import Any
 from backend.approvals.service import ApprovalRequest
 
 NOTE_INPUT_ID = "note"
+RESULT_LABELS = {"approved": "Aprobada", "rejected": "Rechazada", "expired": "Vencida"}
 
 
 def build_approval_card(req: ApprovalRequest, open_url: str | None = None) -> dict[str, Any]:
@@ -63,9 +64,7 @@ def build_approval_card(req: ApprovalRequest, open_url: str | None = None) -> di
 
 def build_result_card(req: ApprovalRequest) -> dict[str, Any]:
     """Tarjeta que reemplaza a la original cuando ya hay decisión (sin botones)."""
-    label = (
-        "Aprobada" if req.status == "approved" else "Rechazada" if req.status == "rejected" else req.status
-    )
+    label = RESULT_LABELS.get(req.status, req.status)
     body: list[dict[str, Any]] = [
         {"type": "TextBlock", "size": "Medium", "weight": "Bolder", "text": f"Solicitud {label.lower()}"},
         {"type": "TextBlock", "text": f"Ticket {req.incident_id}: {req.reason}", "wrap": True},

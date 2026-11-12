@@ -14,7 +14,9 @@ def test_sliding_window() -> None:
     assert limiter.hit("a", now=0)[0]
     assert limiter.hit("a", now=1) == (True, 0, 0.0)
     allowed, remaining, retry = limiter.hit("a", now=2)
-    assert not allowed and remaining == 0 and retry == 8
+    assert not allowed
+    assert remaining == 0
+    assert retry == 8
     assert limiter.hit("b", now=2)[0]  # otra clave, otro cupo
     assert limiter.hit("a", now=10.5)[0]  # la primera salió de la ventana
     limiter.reset()

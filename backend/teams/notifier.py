@@ -37,12 +37,12 @@ def _run(coro: Coroutine[Any, Any, Any]) -> None:
     except RuntimeError:
         asyncio.run(coro)
         return
-    errors: list[BaseException] = []
+    errors: list[Exception] = []
 
     def target() -> None:
         try:
             asyncio.run(coro)
-        except BaseException as exc:  # se relanza en el hilo que llama
+        except Exception as exc:  # se relanza en el hilo que llama
             errors.append(exc)
 
     thread = threading.Thread(target=target)

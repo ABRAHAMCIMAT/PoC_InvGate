@@ -1,9 +1,16 @@
 SHELL := /bin/bash
 
-.PHONY: install local-up local-down api-test lint typecheck security test coverage build seed check-invgate
+.PHONY: install lock local-up local-down api-test lint typecheck security test coverage build seed check-invgate
 
 install:
-	pip install -r requirements.txt -r requirements-dev.txt
+	pip install --require-hashes --only-binary :all: -r requirements-dev.lock
+
+# Regenera los locks con hashes (Linux, Python 3.15; Bandit en 3.13). Requiere uv.
+LOCK_OPTS = --python-platform x86_64-manylinux_2_28 --only-binary :all: --generate-hashes --no-header -q
+lock:
+	uv pip compile requirements.txt --python-version 3.15 $(LOCK_OPTS) -o requirements.lock
+	uv pip compile requirements-dev.txt --python-version 3.15 $(LOCK_OPTS) -o requirements-dev.lock
+	uv pip compile requirements-security.txt --python-version 3.13 $(LOCK_OPTS) -o requirements-security.lock
 
 local-up:
 	uvicorn backend.server:app --host 0.0.0.0 --port $${PORT:-8000} --reload
@@ -23,7 +30,7 @@ typecheck:
 	mypy --explicit-package-bases backend
 
 security:
-	bandit -q -r backend scripts
+	bandit -q -r backend scripts -x tests
 
 test:
 	pytest --cov=backend --cov=scripts --cov-report=term-missing

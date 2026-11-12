@@ -25,6 +25,7 @@
 | Telemetría, auditoría y mapeo sin usar | Los tres están conectados. La auditoría ahora se encadena por hash. Se añadieron `GET /api/metrics` y `/dashboard.html` con las 4 dimensiones. |
 | Faltaban Ollama, OAuth2 y Langfuse | Cliente OpenAI-compatible con respaldo al mock, OAuth2 client credentials con caché del token, y exportador a Langfuse. |
 | Diagnóstico y Conocimiento devolvían texto fijo | Diagnóstico usa reglas o el LLM, y Conocimiento busca en una base de 7 artículos. Los agentes reportan amarillo y rojo reales. |
+| SonarCloud: puerta de calidad en rojo en el PR #3 | Se corrigieron los 34 issues del PR y los 18 de `main`: dependencias desde locks con hash y solo wheels (CI, Sonar y Docker), regex de PII en tiempo lineal, complejidad cognitiva, contraste AA, accesibilidad del frontend y aserciones de pruebas. El lock anterior fijaba `certifi==2025.4.30`, que no existe en PyPI. |
 | `make lint` fallaba y el bot tenía 22.7 % de cobertura | Se añadieron `scripts/` e `infra/`. El bot tiene ahora 89 % de cobertura, y el total es 98 %. |
 
 ## Pendiente (requiere credenciales; ver [VALIDACION_REAL.md](VALIDACION_REAL.md))

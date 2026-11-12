@@ -60,16 +60,18 @@ def test_usage_estimated_when_missing() -> None:
     ],
 )
 def test_errors_raise_llm_error(response) -> None:
+    llm = _llm(lambda r: response)
     with pytest.raises(LLMError):
-        _llm(lambda r: response).complete("s", "u")
+        llm.complete("s", "u")
 
 
 def test_connection_error() -> None:
     def handler(request):
         raise httpx.ConnectError("sin servidor")
 
+    llm = _llm(handler)
     with pytest.raises(LLMError):
-        _llm(handler).complete("s", "u")
+        llm.complete("s", "u")
 
 
 def test_requires_model() -> None:

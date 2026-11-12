@@ -47,6 +47,10 @@ make security
 make coverage
 ```
 
+### Dependencias
+
+Las versiones se fijan en `requirements*.txt`, y la instalación usa los locks con hash (`requirements.lock` para la imagen, `requirements-dev.lock` para CI y desarrollo, `requirements-security.lock` para Bandit). En CI y en Docker solo se instalan wheels (`--only-binary :all: --require-hashes`), así que no se ejecuta código de instalación de terceros. Tras cambiar una versión, regenera los locks con `make lock` (requiere [uv](https://docs.astral.sh/uv/)).
+
 ## Documentación
 
 - Plan incremental: [`docs/PLAN.md`](docs/PLAN.md)

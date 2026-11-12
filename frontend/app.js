@@ -24,12 +24,28 @@ const POLL_MS = 5000;
 let agentState = {};
 let pollTimer = null;
 
-try {
-  apiKeyInput.value = localStorage.getItem("valkiria.apiKey") || "";
-} catch (_) { /* almacenamiento no disponible */ }
-apiKeyInput.addEventListener("change", () => {
-  try { localStorage.setItem("valkiria.apiKey", apiKeyInput.value.trim()); } catch (_) { /* nada */ }
-});
+const STORAGE_KEY = "valkiria.apiKey";
+
+// El almacenamiento puede no existir (modo privado, cookies bloqueadas): la clave solo no se recuerda.
+function readStoredKey() {
+  try {
+    return localStorage.getItem(STORAGE_KEY) || "";
+  } catch (err) {
+    console.warn("No se pudo leer la API key guardada:", err);
+    return "";
+  }
+}
+
+function storeKey(value) {
+  try {
+    localStorage.setItem(STORAGE_KEY, value);
+  } catch (err) {
+    console.warn("No se pudo guardar la API key:", err);
+  }
+}
+
+apiKeyInput.value = readStoredKey();
+apiKeyInput.addEventListener("change", () => storeKey(apiKeyInput.value.trim()));
 
 function headers() {
   const h = { "Content-Type": "application/json" };
@@ -63,7 +79,7 @@ function renderTicket(data) {
     ticketInfo.textContent = data.done ? "No se pudo crear el ticket." : "Sin ticket aún.";
     return;
   }
-  const status = data.ticket && data.ticket.status ? ` · estado ${data.ticket.status}` : "";
+  const status = data.ticket?.status ? ` · estado ${data.ticket.status}` : "";
   ticketInfo.append(
     el("strong", "", data.ticket_id),
     document.createTextNode(
@@ -105,21 +121,25 @@ function stopPolling() {
   pollTimer = null;
 }
 
+async function pollOnce(conversationId) {
+  const resp = await fetch(`/api/conversations/${encodeURIComponent(conversationId)}`, { headers: headers() });
+  if (!resp.ok) return;
+  const data = await resp.json();
+  renderTicket(data);
+  renderApproval(data.approval);
+  const approval = data.approval;
+  if (!approval || approval.status === "pending") return;
+  stopPolling();
+  const verb = approval.status === "approved" ? "aprobó" : "no aprobó";
+  const note = approval.note ? ` Observaciones: ${approval.note}` : "";
+  addMessage("assistant", `Tu manager ${verb} la solicitud.${note}`);
+}
+
 function pollConversation(conversationId) {
   stopPolling();
-  pollTimer = setInterval(async () => {
-    try {
-      const resp = await fetch(`/api/conversations/${encodeURIComponent(conversationId)}`, { headers: headers() });
-      if (!resp.ok) return;
-      const data = await resp.json();
-      renderTicket(data);
-      renderApproval(data.approval);
-      if (data.approval && data.approval.status !== "pending") {
-        stopPolling();
-        const verb = data.approval.status === "approved" ? "aprobó" : "no aprobó";
-        addMessage("assistant", `Tu manager ${verb} la solicitud.` + (data.approval.note ? ` Observaciones: ${data.approval.note}` : ""));
-      }
-    } catch (_) { /* reintenta en el siguiente ciclo */ }
+  pollTimer = setInterval(() => {
+    // Un fallo de red no detiene el sondeo: se reintenta en el siguiente ciclo.
+    pollOnce(conversationId).catch((err) => console.warn("Sondeo fallido:", err));
   }, POLL_MS);
 }
 
@@ -131,31 +151,42 @@ function handleEvent(type, data) {
     renderTicket(data);
     renderApproval(data.approval);
     addMessage("assistant", data.reply || "Procesado.");
-    if (data.approval && data.approval.status === "pending") pollConversation(data.conversation_id);
+    if (data.approval?.status === "pending") pollConversation(data.conversation_id);
   }
+}
+
+// Un evento SSE: líneas "event: <tipo>" y "data: <json>" separadas del siguiente por una línea vacía.
+function parseSseEvent(chunk) {
+  let type = "message";
+  let payload = "";
+  for (const line of chunk.split("\n")) {
+    if (line.startsWith("event: ")) type = line.slice(7);
+    else if (line.startsWith("data: ")) payload += line.slice(6);
+  }
+  return { type, payload };
+}
+
+// Procesa los eventos completos del búfer y devuelve lo que queda sin terminar.
+function drainEvents(buffer) {
+  const parts = buffer.split("\n\n");
+  const rest = parts.pop();
+  for (const chunk of parts) {
+    const { type, payload } = parseSseEvent(chunk);
+    if (payload) handleEvent(type, JSON.parse(payload));
+  }
+  return rest;
 }
 
 async function readStream(resp) {
   const reader = resp.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
-  for (;;) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    let idx;
-    while ((idx = buffer.indexOf("\n\n")) >= 0) {
-      const chunk = buffer.slice(0, idx);
-      buffer = buffer.slice(idx + 2);
-      let type = "message";
-      let payload = "";
-      for (const line of chunk.split("\n")) {
-        if (line.startsWith("event: ")) type = line.slice(7);
-        else if (line.startsWith("data: ")) payload += line.slice(6);
-      }
-      if (payload) handleEvent(type, JSON.parse(payload));
-    }
+  let chunk = await reader.read();
+  while (!chunk.done) {
+    buffer = drainEvents(buffer + decoder.decode(chunk.value, { stream: true }));
+    chunk = await reader.read();
   }
+  drainEvents(buffer + "\n\n");
 }
 
 function errorMessage(status) {
@@ -164,10 +195,7 @@ function errorMessage(status) {
   return "No se pudo procesar la solicitud. Inténtalo de nuevo.";
 }
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const text = input.value.trim();
-  if (!text) return;
+async function sendMessage(text) {
   stopPolling();
   agentState = {};
   renderAgents();
@@ -181,17 +209,24 @@ form.addEventListener("submit", async (e) => {
       headers: headers(),
       body: JSON.stringify({ message: text }),
     });
-    if (!resp.ok) {
+    if (resp.ok) {
+      await readStream(resp);
+    } else {
       addMessage("assistant", errorMessage(resp.status));
-      return;
     }
-    await readStream(resp);
-  } catch (_) {
+  } catch (err) {
+    console.warn("Error de red en el chat:", err);
     addMessage("assistant", "No hay conexión con el servidor.");
   } finally {
     sendBtn.disabled = false;
     input.focus();
   }
+}
+
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = input.value.trim();
+  if (text) sendMessage(text).catch((err) => console.error("Fallo inesperado del chat:", err));
 });
 
 renderAgents();

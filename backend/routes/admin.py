@@ -3,22 +3,24 @@
 from __future__ import annotations
 
 import time
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Query
 
 from backend.observability.metrics import summarize
-from backend.runtime import Runtime, get_runtime
-from backend.security.auth import require_role
+from backend.runtime import RuntimeDep
+from backend.security.auth import AUTH_RESPONSES, AdminRole, AgentRole
 
-router = APIRouter(prefix="/api", tags=["observabilidad"])
+router = APIRouter(prefix="/api", tags=["observabilidad"], responses=AUTH_RESPONSES)
+
+MAX_HOURS = 24 * 90
 
 
 @router.get("/metrics")
 def metrics(
-    hours: float | None = Query(default=None, gt=0, le=24 * 90),
-    _: str = Depends(require_role("agent")),
-    rt: Runtime = Depends(get_runtime),
+    _: AgentRole,
+    rt: RuntimeDep,
+    hours: Annotated[float | None, Query(gt=0, le=MAX_HOURS)] = None,
 ) -> dict[str, Any]:
     """Negocio/ITSM, rendimiento, costos y orquestación a partir de la telemetría."""
     since = time.time() - hours * 3600 if hours else None
@@ -26,8 +28,6 @@ def metrics(
 
 
 @router.get("/audit/verify")
-def audit_verify(
-    _: str = Depends(require_role("admin")), rt: Runtime = Depends(get_runtime)
-) -> dict[str, Any]:
+def audit_verify(_: AdminRole, rt: RuntimeDep) -> dict[str, Any]:
     entries = sum(1 for _ in rt.audit.read())
     return {"valid": rt.audit.verify(), "entries": entries}

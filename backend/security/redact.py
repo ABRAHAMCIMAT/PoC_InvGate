@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import re
 
-_EMAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
-_PHONE = re.compile(r"\+?[0-9][0-9 .-]{7,}")
+# Cada coincidencia solo puede empezar al inicio de un token (lookbehind) y los cuantificadores
+# son posesivos (++), así que no hay retroceso: tiempo lineal incluso con entradas hostiles.
+_EMAIL = re.compile(r"(?<![\w.+-])[\w.+-]++@[\w-]++(?:\.[\w-]++)++")
+# Un teléfono empieza y termina en dígito: 8 o más dígitos con separadores sueltos entre ellos.
+_PHONE = re.compile(r"(?<![\d+])\+?\d(?:[ .-]?+\d){7,}+")
 
 
 def redact(text: str) -> str:

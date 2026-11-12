@@ -63,7 +63,8 @@ def test_teams_endpoint_handles_activity() -> None:
     rt.adapter.send_activities = fake_send  # type: ignore[method-assign]
     resp = client.post("/api/messages", json=activity)
     assert resp.status_code in (200, 201)
-    assert sent and "bot de aprobaciones" in sent[0].text
+    assert sent
+    assert "bot de aprobaciones" in sent[0].text
     assert rt.references.get("u1") is not None
     assert (
         client.post("/api/messages", content="x", headers={"content-type": "text/plain"}).status_code == 415

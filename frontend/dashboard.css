@@ -5,7 +5,7 @@
 }
 .nav button { cursor: pointer; }
 
-.status { color: #52606d; font-size: 0.9rem; margin: 12px 0 0; }
+.status { display: block; color: #52606d; font-size: 0.9rem; margin: 12px 0 0; }
 .status.error { color: #c0392b; }
 
 .kpis {
@@ -26,7 +26,7 @@ section h3 { font-size: 0.85rem; color: #52606d; margin: 14px 0 6px; font-weight
 .bars { display: flex; flex-direction: column; gap: 6px; }
 .bar { display: grid; grid-template-columns: 110px 1fr 56px; gap: 8px; align-items: center; font-size: 0.85rem; }
 .bar .track { background: #eef2f6; border-radius: 4px; height: 10px; overflow: hidden; }
-.bar .fill { background: #2f80ed; height: 100%; }
+.bar .fill { background: #1a5fc2; height: 100%; }
 .bar .num { text-align: right; font-variant-numeric: tabular-nums; }
 .bar .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -45,4 +45,4 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
 .stack .ok { background: #2ecc71; }
 .stack .warning { background: #f1c40f; }
 .stack .error { background: #e74c3c; }
-.empty { color: #7b8794; font-size: 0.85rem; }
+.empty { color: #52606d; font-size: 0.85rem; }
