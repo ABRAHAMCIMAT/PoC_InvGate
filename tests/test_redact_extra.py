@@ -36,3 +36,11 @@ def test_redact_keeps_surrounding_text() -> None:
 def test_redact_ignores_dates_and_short_numbers() -> None:
     text = "versión 1.2.3, fecha 2026-11-12, IP 10.0.0.1, ticket DEMO-0001, ---------- fin"
     assert redact(text) == text
+
+
+def test_redact_email_edge_cases() -> None:
+    assert redact("escribe a ana@corp.com.") == "escribe a [EMAIL]."
+    assert (
+        redact("usuario@localhost no es un correo completo") == "usuario@localhost no es un correo completo"
+    )
+    assert redact("a@b..c") == "a@b..c"
