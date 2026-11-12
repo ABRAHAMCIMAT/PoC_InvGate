@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+import secrets
+import time
 from typing import Any
 
 import httpx
@@ -58,10 +60,12 @@ class InvGateClient:
             except httpx.HTTPError as exc:
                 last_error = exc
                 logger.warning("InvGate %s %s falló (intento %d): %s", method, url, attempt + 1, exc)
+                self._backoff(attempt)
                 continue
             if resp.status_code in (429, 500, 502, 503, 504):
                 last_error = InvGateError(f"HTTP {resp.status_code} en {url}")
                 logger.warning("InvGate %s %s -> %s (intento %d)", method, url, resp.status_code, attempt + 1)
+                self._backoff(attempt)
                 continue
             if resp.status_code == 401 or resp.status_code == 403:
                 raise InvGateAuthError(f"Autenticación fallida (HTTP {resp.status_code})")
@@ -114,6 +118,12 @@ class InvGateClient:
 
     def close(self) -> None:
         self._client.close()
+
+    @staticmethod
+    def _backoff(attempt: int) -> None:
+        """Espera exponencial con jitter antes de reintentar."""
+        delay = min(0.5 * (2**attempt), 8.0) + secrets.randbelow(250) / 1000.0
+        time.sleep(delay)
 
     @staticmethod
     def _parse_incident(data: dict[str, Any]) -> Incident:

@@ -5,13 +5,14 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from backend.agents.models import Conversation
 from backend.agents.orchestrator import MultiAgentOrchestrator
 from backend.llmops.llm import get_llm
+from backend.security.auth import require_role
 from backend.ticketing.factory import get_provider
 
 router = APIRouter(prefix="/api", tags=["chat"])
@@ -33,7 +34,7 @@ class EscalateRequest(BaseModel):
 
 
 @router.post("/chat")
-def chat(req: ChatRequest) -> dict[str, Any]:
+def chat(req: ChatRequest, _: str = Depends(require_role("user"))) -> dict[str, Any]:
     if not req.message.strip():
         raise HTTPException(status_code=400, detail="message vacío")
     orch = _orchestrator()
@@ -52,7 +53,7 @@ def chat(req: ChatRequest) -> dict[str, Any]:
 
 
 @router.post("/chat/stream")
-def chat_stream(req: ChatRequest) -> StreamingResponse:
+def chat_stream(req: ChatRequest, _: str = Depends(require_role("user"))) -> StreamingResponse:
     if not req.message.strip():
         raise HTTPException(status_code=400, detail="message vacío")
     orch = _orchestrator()
@@ -68,7 +69,7 @@ def chat_stream(req: ChatRequest) -> StreamingResponse:
 
 
 @router.get("/conversations")
-def list_conversations() -> list[dict[str, Any]]:
+def list_conversations(_: str = Depends(require_role("user"))) -> list[dict[str, Any]]:
     return [
         {
             "id": c.id,
@@ -84,7 +85,7 @@ def list_conversations() -> list[dict[str, Any]]:
 
 
 @router.get("/conversations/{conversation_id}")
-def get_conversation(conversation_id: str) -> dict[str, Any]:
+def get_conversation(conversation_id: str, _: str = Depends(require_role("user"))) -> dict[str, Any]:
     conv = _conversations.get(conversation_id)
     if conv is None:
         raise HTTPException(status_code=404, detail="conversación no encontrada")
@@ -101,7 +102,7 @@ def get_conversation(conversation_id: str) -> dict[str, Any]:
 
 
 @router.post("/escalate")
-def escalate(req: EscalateRequest) -> dict[str, Any]:
+def escalate(req: EscalateRequest, _: str = Depends(require_role("agent"))) -> dict[str, Any]:
     conv = _conversations.get(req.conversation_id)
     if conv is None:
         raise HTTPException(status_code=404, detail="conversación no encontrada")
