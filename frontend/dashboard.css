@@ -1,0 +1,52 @@
+.app.wide { max-width: 1120px; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+.nav select, .nav button {
+  padding: 6px 10px; border: 1px solid #cbd2d9; border-radius: 6px; background: #fff; font: inherit;
+}
+.nav button { cursor: pointer; }
+
+.status { color: #52606d; font-size: 0.9rem; margin: 12px 0 0; }
+.status.error { color: #c0392b; }
+
+.kpis {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;
+  background: transparent; border: 0; padding: 0;
+}
+.kpi {
+  background: #fff; border: 1px solid #e4e7eb; border-radius: 10px; padding: 14px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.kpi .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: .04em; color: #52606d; }
+.kpi .value { font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.grid section { margin-top: 16px; min-width: 0; }
+section h3 { font-size: 0.85rem; color: #52606d; margin: 14px 0 6px; font-weight: 600; }
+
+.bars { display: flex; flex-direction: column; gap: 6px; }
+.bar { display: grid; grid-template-columns: 110px 1fr 56px; gap: 8px; align-items: center; font-size: 0.85rem; }
+.bar .track { background: #eef2f6; border-radius: 4px; height: 10px; overflow: hidden; }
+.bar .fill { background: #2f80ed; height: 100%; }
+.bar .num { text-align: right; font-variant-numeric: tabular-nums; }
+.bar .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.facts { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; margin: 0; font-size: 0.9rem; }
+.facts dt { color: #52606d; }
+.facts dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th, td { padding: 6px 8px; border-bottom: 1px solid #e4e7eb; text-align: left; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+
+.stacks { display: flex; flex-direction: column; gap: 6px; }
+.stack-row { display: grid; grid-template-columns: 110px 1fr; gap: 8px; align-items: center; font-size: 0.85rem; }
+.stack { display: flex; height: 12px; border-radius: 4px; overflow: hidden; background: #eef2f6; }
+.stack .ok { background: #2ecc71; }
+.stack .warning { background: #f1c40f; }
+.stack .error { background: #e74c3c; }
+.empty { color: #7b8794; font-size: 0.85rem; }

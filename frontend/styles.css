@@ -125,3 +125,99 @@ section h2 {
   color: #fff;
   cursor: pointer;
 }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.nav a {
+  color: #2f80ed;
+}
+
+.settings summary {
+  cursor: pointer;
+  color: #52606d;
+}
+
+.settings label {
+  display: block;
+  margin: 8px 0 4px;
+  font-size: 0.8rem;
+  color: #52606d;
+}
+
+.settings input {
+  padding: 6px 8px;
+  border: 1px solid #cbd2d9;
+  border-radius: 6px;
+  width: 220px;
+  max-width: 100%;
+}
+
+.legend {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+  color: #52606d;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.legend .dot,
+.agent .dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #9aa5b1;
+}
+
+.legend .dot.ok { background: #2ecc71; }
+.legend .dot.warning { background: #f1c40f; }
+.legend .dot.error { background: #e74c3c; }
+
+.agent.pending { opacity: 0.6; }
+
+.approval {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border-left: 4px solid #9aa5b1;
+  background: #f5f7fa;
+  font-size: 0.92rem;
+}
+
+.approval.pending { border-left-color: #f1c40f; }
+.approval.approved { border-left-color: #2ecc71; }
+.approval.rejected, .approval.expired { border-left-color: #e74c3c; }
+
+.approval .note {
+  margin: 6px 0 0;
+  color: #3e4c59;
+}
+
+.approval .note-label {
+  font-weight: 600;
+}
+
+.chat-form button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible {
+  outline: 2px solid #2f80ed;
+  outline-offset: 2px;
+}

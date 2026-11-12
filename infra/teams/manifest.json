@@ -1,0 +1,29 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.17/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.17",
+  "version": "0.2.0",
+  "id": "{{TEAMS_BOT_APP_ID}}",
+  "developer": {
+    "name": "Valkiria PoC",
+    "websiteUrl": "{{PUBLIC_BASE_URL}}",
+    "privacyUrl": "{{PUBLIC_BASE_URL}}",
+    "termsOfUseUrl": "{{PUBLIC_BASE_URL}}"
+  },
+  "name": { "short": "Valkiria Aprobaciones", "full": "Valkiria · Aprobaciones de InvGate" },
+  "description": {
+    "short": "Aprueba o rechaza solicitudes de InvGate desde Teams.",
+    "full": "Bot del PoC Valkiria. Envía al manager las solicitudes que requieren aprobación, con botones Aprobar/Rechazar y un campo de observaciones que se registran en InvGate."
+  },
+  "icons": { "color": "color.png", "outline": "outline.png" },
+  "accentColor": "#2F80ED",
+  "bots": [
+    {
+      "botId": "{{TEAMS_BOT_APP_ID}}",
+      "scopes": ["personal"],
+      "supportsFiles": false,
+      "isNotificationOnly": false
+    }
+  ],
+  "permissions": ["identity", "messageTeamMembers"],
+  "validDomains": []
+}

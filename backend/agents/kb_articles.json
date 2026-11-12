@@ -1,0 +1,23 @@
+[
+  {"id": "KB-001", "title": "Restablecer tu contraseña de red", "category": "acceso",
+   "keywords": ["contraseña", "password", "clave", "olvidé", "bloqueada", "bloqueado", "acceso", "login"],
+   "summary": "Usa el portal de autoservicio para restablecerla. Si tu cuenta está bloqueada, espera 15 minutos o pide el desbloqueo a la mesa de ayuda."},
+  {"id": "KB-002", "title": "Configurar la VPN corporativa", "category": "acceso",
+   "keywords": ["vpn", "remoto", "conexión", "conectar", "casa"],
+   "summary": "Instala el cliente VPN desde el portal de software y entra con tu usuario de red y el segundo factor."},
+  {"id": "KB-003", "title": "Solicitar instalación de software", "category": "software",
+   "keywords": ["instalar", "software", "aplicación", "app", "licencia", "programa"],
+   "summary": "El software fuera del catálogo estándar requiere aprobación de tu manager. El ticket queda en espera hasta su decisión."},
+  {"id": "KB-004", "title": "El equipo no enciende", "category": "hardware",
+   "keywords": ["enciende", "prende", "batería", "cargador", "pantalla", "negra", "laptop"],
+   "summary": "Revisa el cargador y el indicador de carga, deja el equipo conectado 15 minutos y mantén pulsado el botón de encendido 30 segundos."},
+  {"id": "KB-005", "title": "Impresora sin conexión", "category": "hardware",
+   "keywords": ["impresora", "imprimir", "cola", "toner", "papel"],
+   "summary": "Comprueba que la impresora tenga red, borra la cola de impresión y vuelve a agregarla desde el panel de impresoras."},
+  {"id": "KB-006", "title": "Correo lento o sin sincronizar", "category": "general",
+   "keywords": ["correo", "outlook", "email", "sincroniza", "buzón"],
+   "summary": "Cierra y abre el cliente de correo, revisa el espacio del buzón y, si persiste, reconstruye el perfil."},
+  {"id": "KB-007", "title": "Caída de un servicio para varios usuarios", "category": "infraestructura",
+   "keywords": ["producción", "produccion", "caído", "caido", "todos", "servicio", "servidor", "red"],
+   "summary": "Se abre incidente mayor: el equipo de Nivel 3 coordina la recuperación y publica el estado en el canal de incidentes."}
+]

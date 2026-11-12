@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: install local-up local-down api-test lint typecheck test coverage build
+.PHONY: install local-up local-down api-test lint typecheck security test coverage build seed check-invgate
 
 install:
 	pip install -r requirements.txt -r requirements-dev.txt
@@ -20,13 +20,24 @@ lint:
 	ruff format --check backend tests scripts
 
 typecheck:
-	mypy backend
+	mypy --explicit-package-bases backend
+
+security:
+	bandit -q -r backend scripts
 
 test:
-	pytest --cov=backend --cov-report=term-missing
+	pytest --cov=backend --cov=scripts --cov-report=term-missing
 
 coverage:
-	pytest --cov=backend --cov-report=term-missing --cov-fail-under=90.01
+	pytest --cov=backend --cov=scripts --cov-report=term-missing --cov-fail-under=90.01
 
 build:
 	docker build -t valkiria-invgate:local .
+
+# Puebla el dashboard con N conversaciones de demo (por defecto 40)
+seed:
+	python -m scripts.seed_demo_telemetry -n $${N:-40}
+
+# Prueba de humo contra InvGate real. Ejemplo: make check-invgate ARGS="--incident 123"
+check-invgate:
+	python -m scripts.check_invgate $${ARGS:-}

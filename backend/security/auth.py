@@ -40,6 +40,9 @@ def require_role(role: str):
         settings: Settings = Depends(get_settings),
     ) -> str:
         if not settings.api_keys:
+            if settings.is_production:
+                # En producción nunca se abre la API por olvido de configuración.
+                raise HTTPException(status_code=503, detail="API_KEYS no configuradas en producción")
             # Sin API_KEYS configuradas, el acceso es abierto (modo demo).
             return "admin"
         if credentials is None:

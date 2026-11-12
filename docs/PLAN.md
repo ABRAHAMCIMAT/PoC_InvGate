@@ -23,7 +23,7 @@ Replicar el PoC multiagente de `valkiria_servitonic` sustituyendo ServiceTonic p
 - CI (`.github/workflows/ci.yml`): lint, tipos, tests, Bandit, pip-audit, build Docker.
 - **Criterio de aceptación:** `make local-up` levanta el API y pasa healthcheck; CI verde.
 
-## Fase 1 — Adaptador InvGate (núcleo) ✅
+## Fase 1 — Adaptador InvGate (núcleo) ✅ (código; validación real pendiente)
 
 **Objetivo:** Cliente de API InvGate con CRUD de tickets y catálogos.
 
@@ -70,7 +70,7 @@ Replicar el PoC multiagente de `valkiria_servitonic` sustituyendo ServiceTonic p
 - Telemetría JSONL modelo-agnóstica, dashboard de 4 dimensiones (negocio/ITSM, rendimiento, costos, orquestación), Langfuse opcional.
 - **Criterio de aceptación:** dashboard poblado con telemetría de demo; endpoints protegidos por rol.
 
-## Fase 6 — Calidad, pruebas y cierre 🔄
+## Fase 6 — Calidad, pruebas y cierre ✅ (SonarCloud requiere `SONAR_TOKEN`)
 
 **Objetivo:** Cerrar el PoC con 10/10 criterios.
 
@@ -83,4 +83,4 @@ Replicar el PoC multiagente de `valkiria_servitonic` sustituyendo ServiceTonic p
 
 ## Nota de acceso
 
-El adaptador de InvGate se construye contra la API pública documentada. La validación "en real" de las Fases 1 y 3 requiere la URL de instancia y el token de una instancia InvGate real (configurables en `.env`). El resto del PoC corre con `TICKETING_PROVIDER=demo|simulated` y LLM mock sin credenciales.
+El adaptador de InvGate se construye contra la API pública documentada. La validación "en real" de las Fases 1 y 3 ([`VALIDACION_REAL.md`](VALIDACION_REAL.md)) requiere la URL de instancia y el token de una instancia InvGate real (configurables en `.env`). El resto del PoC corre con `TICKETING_PROVIDER=demo|simulated` y LLM mock sin credenciales.

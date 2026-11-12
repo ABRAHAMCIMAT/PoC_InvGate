@@ -5,7 +5,8 @@ from __future__ import annotations
 from backend.config import Settings, get_settings
 
 
-def test_defaults() -> None:
+def test_defaults(monkeypatch) -> None:
+    monkeypatch.delenv("DATA_DIR", raising=False)
     s = Settings()
     assert s.app_env == "development"
     assert s.host == "0.0.0.0"
@@ -14,11 +15,11 @@ def test_defaults() -> None:
     assert s.log_user_content is False
     assert s.data_dir == "backend/data"
     assert s.api_keys == ""
-    assert s.cors_origins == "localhost:8000"
+    assert s.cors_origins == "http://localhost:8000"
     assert s.rate_limit_max == 60
     assert s.rate_limit_window == 60
     assert s.llm_provider == "mock"
-    assert s.llm_base_url == "http://host.docker.internal:1337/v1"
+    assert s.llm_base_url == ""
     assert s.llm_model == ""
     assert s.llm_api_key == ""
     assert s.ticketing_provider == "demo"
@@ -43,7 +44,11 @@ def test_defaults() -> None:
     assert s.langfuse_secret_key == ""
     assert s.langfuse_host == "https://cloud.langfuse.com"
     assert s.is_production is False
-    assert s.cors_origin_list == ["localhost:8000"]
+    assert s.cors_origin_list == ["http://localhost:8000"]
+    assert s.rate_limit_enabled is True
+    assert s.invgate_api_prefix == "/api/v1"
+    assert s.invgate_client_id == ""
+    assert s.llm_cost_per_1k_tokens == 0
 
 
 def test_env_overrides(monkeypatch) -> None:
