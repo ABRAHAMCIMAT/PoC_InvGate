@@ -19,7 +19,7 @@ def test_request_and_approve() -> None:
     incident = provider.create_incident(Incident(title="Instalar software"))
     req = service.request_approval(incident, "Manager", "m@x.com", "Instalación")
     assert req.decided is False
-    decided = service.decide(req.id, ApprovalDecision.APPROVED, "user-1")
+    decided = service.decide(req.id, ApprovalDecision.APPROVED, "user-1", user_email="m@x.com")
     assert decided.decision == ApprovalDecision.APPROVED
     updated = provider.get_incident(incident.id)
     assert updated.status == "in_progress"
@@ -29,8 +29,8 @@ def test_second_click_ignored() -> None:
     service, provider = _service()
     incident = provider.create_incident(Incident(title="Instalar"))
     req = service.request_approval(incident, "Manager", "m@x.com", "Instalación")
-    service.decide(req.id, ApprovalDecision.APPROVED, "user-1")
-    again = service.decide(req.id, ApprovalDecision.REJECTED, "user-1")
+    service.decide(req.id, ApprovalDecision.APPROVED, "user-1", user_email="m@x.com")
+    again = service.decide(req.id, ApprovalDecision.REJECTED, "user-1", user_email="m@x.com")
     assert again.decision == ApprovalDecision.APPROVED
 
 
@@ -38,7 +38,7 @@ def test_reject_cancels_ticket() -> None:
     service, provider = _service()
     incident = provider.create_incident(Incident(title="Instalar"))
     req = service.request_approval(incident, "Manager", "m@x.com", "Instalación")
-    service.decide(req.id, ApprovalDecision.REJECTED, "user-1")
+    service.decide(req.id, ApprovalDecision.REJECTED, "user-1", user_email="m@x.com")
     updated = provider.get_incident(incident.id)
     assert updated.status == "cancelled"
 
@@ -46,4 +46,4 @@ def test_reject_cancels_ticket() -> None:
 def test_missing_approval_raises() -> None:
     service, _ = _service()
     with pytest.raises(KeyError):
-        service.decide("APR-0", ApprovalDecision.APPROVED, "user-1")
+        service.decide("APR-0", ApprovalDecision.APPROVED, "user-1", user_email="m@x.com")

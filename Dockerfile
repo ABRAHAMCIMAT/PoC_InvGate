@@ -6,13 +6,20 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir --only-binary :all: -r requirements.txt
+# Solo wheels con hash verificado: no se ejecutan scripts de instalación.
+COPY requirements.lock .
+RUN pip install --no-cache-dir --require-hashes --only-binary :all: -r requirements.lock
 
 COPY backend ./backend
+COPY frontend ./frontend
+COPY scripts ./scripts
 
-RUN useradd --create-home --uid 1000 appuser
+RUN useradd --create-home --uid 1000 appuser \
+    && mkdir -p /app/data \
+    && chown appuser /app/data
 USER appuser
+
+ENV DATA_DIR=/app/data
 
 EXPOSE 8000
 

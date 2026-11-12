@@ -1,47 +1,154 @@
 {
-  "version": "1.0",
+  "version": "1.1",
   "name": "Valkiria InvGate PoC",
+  "variables": {
+    "base": "http://127.0.0.1:8000",
+    "apiKey": "",
+    "conversationId": "REEMPLAZAR",
+    "approvalId": "REEMPLAZAR",
+    "invgate": "https://TU-INSTANCIA.cloud.invgate.net/api/v1",
+    "invgateUser": "api",
+    "invgateToken": "",
+    "incidentId": "REEMPLAZAR"
+  },
   "requests": [
     {
+      "folder": "PoC",
       "name": "Healthcheck",
       "method": "GET",
-      "url": "http://127.0.0.1:8000/api/health",
-      "assert": {
-        "statusCode": 200
-      }
+      "url": "{{base}}/api/health",
+      "assert": { "statusCode": 200 }
     },
     {
+      "folder": "PoC",
       "name": "Chat - crear ticket",
       "method": "POST",
-      "url": "http://127.0.0.1:8000/api/chat",
-      "headers": {
-        "Content-Type": "application/json"
-      },
-      "body": {
-        "mode": "json",
-        "json": {
-          "message": "No enciende mi laptop"
-        }
-      }
+      "url": "{{base}}/api/chat",
+      "headers": { "Content-Type": "application/json", "Authorization": "Bearer {{apiKey}}" },
+      "body": { "mode": "json", "json": { "message": "No enciende mi laptop" } },
+      "assert": { "statusCode": 200 }
     },
     {
+      "folder": "PoC",
+      "name": "Chat - solicitud con aprobación",
+      "method": "POST",
+      "url": "{{base}}/api/chat",
+      "headers": { "Content-Type": "application/json", "Authorization": "Bearer {{apiKey}}" },
+      "body": { "mode": "json", "json": { "message": "Necesito instalar Figma" } },
+      "assert": { "statusCode": 200, "body.requires_approval": true }
+    },
+    {
+      "folder": "PoC",
+      "name": "Chat - streaming SSE",
+      "method": "POST",
+      "url": "{{base}}/api/chat/stream",
+      "headers": { "Content-Type": "application/json", "Authorization": "Bearer {{apiKey}}" },
+      "body": { "mode": "json", "json": { "message": "Se cayó producción para todos" } }
+    },
+    {
+      "folder": "PoC",
       "name": "Listar conversaciones",
       "method": "GET",
-      "url": "http://127.0.0.1:8000/api/conversations"
+      "url": "{{base}}/api/conversations",
+      "headers": { "Authorization": "Bearer {{apiKey}}" }
     },
     {
-      "name": "Escalar conversación",
+      "folder": "PoC",
+      "name": "Ver conversación (estado del ticket y observaciones)",
+      "method": "GET",
+      "url": "{{base}}/api/conversations/{{conversationId}}",
+      "headers": { "Authorization": "Bearer {{apiKey}}" }
+    },
+    {
+      "folder": "PoC",
+      "name": "Escalar conversación (rol agent)",
       "method": "POST",
-      "url": "http://127.0.0.1:8000/api/escalate",
-      "headers": {
-        "Content-Type": "application/json"
-      },
+      "url": "{{base}}/api/escalate",
+      "headers": { "Content-Type": "application/json", "Authorization": "Bearer {{apiKey}}" },
+      "body": { "mode": "json", "json": { "conversation_id": "{{conversationId}}", "reason": "Cliente VIP" } }
+    },
+    {
+      "folder": "Aprobaciones",
+      "name": "Listar aprobaciones (rol agent)",
+      "method": "GET",
+      "url": "{{base}}/api/approvals",
+      "headers": { "Authorization": "Bearer {{apiKey}}" }
+    },
+    {
+      "folder": "Aprobaciones",
+      "name": "Aprobar con observaciones (rol admin)",
+      "method": "POST",
+      "url": "{{base}}/api/approvals/{{approvalId}}/decision",
+      "headers": { "Content-Type": "application/json", "Authorization": "Bearer {{apiKey}}" },
       "body": {
         "mode": "json",
-        "json": {
-          "conversation_id": "REEMPLAZAR"
-        }
+        "json": { "decision": "approved", "note": "Usa la licencia del equipo", "user_email": "manager@empresa.com" }
       }
+    },
+    {
+      "folder": "Observabilidad",
+      "name": "Métricas del dashboard (rol agent)",
+      "method": "GET",
+      "url": "{{base}}/api/metrics?hours=24",
+      "headers": { "Authorization": "Bearer {{apiKey}}" },
+      "assert": { "statusCode": 200 }
+    },
+    {
+      "folder": "Observabilidad",
+      "name": "Verificar audit trail (rol admin)",
+      "method": "GET",
+      "url": "{{base}}/api/audit/verify",
+      "headers": { "Authorization": "Bearer {{apiKey}}" },
+      "assert": { "body.valid": true }
+    },
+    {
+      "folder": "InvGate (solo lectura)",
+      "name": "Prioridades",
+      "method": "GET",
+      "url": "{{invgate}}/incident.attributes.priority",
+      "auth": { "mode": "basic", "username": "{{invgateUser}}", "password": "{{invgateToken}}" }
+    },
+    {
+      "folder": "InvGate (solo lectura)",
+      "name": "Estados",
+      "method": "GET",
+      "url": "{{invgate}}/incident.attributes.status",
+      "auth": { "mode": "basic", "username": "{{invgateUser}}", "password": "{{invgateToken}}" }
+    },
+    {
+      "folder": "InvGate (solo lectura)",
+      "name": "Categorías",
+      "method": "GET",
+      "url": "{{invgate}}/categories?page_size=100",
+      "auth": { "mode": "basic", "username": "{{invgateUser}}", "password": "{{invgateToken}}" }
+    },
+    {
+      "folder": "InvGate (solo lectura)",
+      "name": "Helpdesks",
+      "method": "GET",
+      "url": "{{invgate}}/helpdesks",
+      "auth": { "mode": "basic", "username": "{{invgateUser}}", "password": "{{invgateToken}}" }
+    },
+    {
+      "folder": "InvGate (solo lectura)",
+      "name": "Consultar incidente",
+      "method": "GET",
+      "url": "{{invgate}}/incident?id={{incidentId}}&date_format=iso8601",
+      "auth": { "mode": "basic", "username": "{{invgateUser}}", "password": "{{invgateToken}}" }
+    },
+    {
+      "folder": "InvGate (solo lectura)",
+      "name": "Comentarios del incidente",
+      "method": "GET",
+      "url": "{{invgate}}/incident.comment?request_id={{incidentId}}",
+      "auth": { "mode": "basic", "username": "{{invgateUser}}", "password": "{{invgateToken}}" }
+    },
+    {
+      "folder": "InvGate (solo lectura)",
+      "name": "Aprobaciones del incidente",
+      "method": "GET",
+      "url": "{{invgate}}/incident.approval?request_id={{incidentId}}",
+      "auth": { "mode": "basic", "username": "{{invgateUser}}", "password": "{{invgateToken}}" }
     }
   ]
 }

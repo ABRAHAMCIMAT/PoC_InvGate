@@ -8,44 +8,48 @@ Mantener la arquitectura multiagente, las aprobaciones en Microsoft Teams, la ca
 
 ## Estado
 
-- **Fase 0 — Fundaciones y esqueleto:** ✅ completada (CI, estructura, healthcheck).
-- **Fase 1 — Adaptador InvGate:** ✅ completada (cliente, mapeo, proveedores demo/simulated/invgate).
-- **Fase 2 — Agentes multiagente:** ✅ completada (8 agentes, LLM mock, endpoints de chat).
-- **Fase 3 — Aprobaciones + Teams:** ✅ completada (código; validación real pendiente).
-- **Fase 4 — Frontend web:** ✅ completada (chat, semáforo de agentes, tarjeta de ticket).
-- **Fase 5 — Seguridad y observabilidad:** ✅ completada (RBAC, rate limit, PII, telemetría).
-- **Fase 6 — Calidad y cierre:** 🔄 en curso (docs y colección de Bruno listas).
+- **Fases 0, 2, 4 y 5:** ✅ completadas.
+- **Fase 1 — Adaptador InvGate:** ✅ código completo (API v1, token u OAuth2, aprobaciones nativas). ⏳ Falta validar en una instancia real.
+- **Fase 3 — Aprobaciones + Teams:** ✅ código completo (bot proactivo, observaciones, solo vota el manager). ⏳ Falta validar en un tenant real.
+- **Fase 6 — Calidad:** ✅ 170 pruebas, 98 % de cobertura, Ruff, Mypy y Bandit en verde. ⏳ SonarCloud necesita el secreto `SONAR_TOKEN`.
+
+Lo pendiente necesita credenciales; los pasos están en [`docs/VALIDACION_REAL.md`](docs/VALIDACION_REAL.md).
 
 ## Estructura
 
 ```
-backend/     API FastAPI y lógica
-frontend/    Chat web (Fase 4)
-scripts/     Utilidades
-bruno/       Colección de pruebas de API
-infra/       Despliegue
-backend/data Datos locales (demo)
+backend/     API FastAPI, agentes, adaptador InvGate, aprobaciones, Teams y observabilidad
+frontend/    Chat web y dashboard (servidos por la API)
+scripts/     seed_demo_telemetry (demo del dashboard) y check_invgate (prueba real)
+bruno/       Colección de pruebas de API (incluye InvGate en solo lectura)
+infra/       Manifiesto de la app de Teams
+backend/data Datos locales: telemetría, auditoría, tickets simulados (se crea al arrancar)
 ```
 
 ## Inicio rápido
 
 ```bash
 make install
-make local-up
-make api-test
+make local-up      # chat en http://127.0.0.1:8000/ y dashboard en /dashboard.html
+make seed          # poblar el dashboard con conversaciones de demo
 ```
 
 ## Configuración
 
-Copia `.env.example` a `.env` y ajusta las variables. El PoC corre por defecto con `TICKETING_PROVIDER=demo` y LLM mock, sin credenciales. Para InvGate real, configura `INVGATE_BASE_URL` e `INVGATE_API_TOKEN`.
+Copia `.env.example` a `.env` y ajusta las variables. El PoC corre por defecto con `TICKETING_PROVIDER=demo` y LLM mock, sin credenciales. Para InvGate real, configura `INVGATE_BASE_URL` y `INVGATE_API_TOKEN` (o `INVGATE_CLIENT_ID`/`INVGATE_CLIENT_SECRET`) y sigue [`docs/VALIDACION_REAL.md`](docs/VALIDACION_REAL.md).
 
 ## Calidad
 
 ```bash
 make lint
 make typecheck
+make security
 make coverage
 ```
+
+### Dependencias
+
+Las versiones se fijan en `requirements*.txt`, y la instalación usa los locks con hash (`requirements.lock` para la imagen, `requirements-dev.lock` para CI y desarrollo, `requirements-security.lock` para Bandit). En CI y en Docker solo se instalan wheels (`--only-binary :all: --require-hashes`), así que no se ejecuta código de instalación de terceros. Tras cambiar una versión, regenera los locks con `make lock` (requiere [uv](https://docs.astral.sh/uv/)).
 
 ## Documentación
 
@@ -55,3 +59,4 @@ make coverage
 - Evidencias: [`docs/POC_EVIDENCIAS.md`](docs/POC_EVIDENCIAS.md)
 - Arquitectura C4: [`docs/ARQUITECTURA_C4.md`](docs/ARQUITECTURA_C4.md)
 - LLMOps: [`docs/LLMOPS.md`](docs/LLMOPS.md)
+- Validación en real (InvGate, Teams, SonarCloud): [`docs/VALIDACION_REAL.md`](docs/VALIDACION_REAL.md)

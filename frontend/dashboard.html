@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Valkiria · Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+  <main class="app wide">
+    <header class="header">
+      <div>
+        <h1>Dashboard de operación</h1>
+        <p class="subtitle">Negocio/ITSM, rendimiento, costos y orquestación, a partir de la telemetría</p>
+      </div>
+      <nav class="nav">
+        <a href="index.html">Chat</a>
+        <label for="window" class="sr-only">Periodo</label>
+        <select id="window">
+          <option value="">Todo el historial</option>
+          <option value="1">Última hora</option>
+          <option value="24" selected>Últimas 24 h</option>
+          <option value="168">Últimos 7 días</option>
+        </select>
+        <button type="button" id="refresh">Actualizar</button>
+      </nav>
+    </header>
+
+    <output id="status" class="status" aria-live="polite">Cargando…</output>
+
+    <section class="kpis" aria-label="Indicadores principales">
+      <div class="kpi"><span class="label">Conversaciones</span><span class="value" id="k-conv">—</span></div>
+      <div class="kpi"><span class="label">Tickets creados</span><span class="value" id="k-tickets">—</span></div>
+      <div class="kpi"><span class="label">Tasa de escalación</span><span class="value" id="k-esc">—</span></div>
+      <div class="kpi"><span class="label">Latencia p95 del chat</span><span class="value" id="k-p95">—</span></div>
+      <div class="kpi"><span class="label">Costo estimado</span><span class="value" id="k-cost">—</span></div>
+    </section>
+
+    <div class="grid">
+      <section id="negocio">
+        <h2>Negocio / ITSM</h2>
+        <h3>Por categoría</h3>
+        <div class="bars" id="by-category"></div>
+        <h3>Por prioridad</h3>
+        <div class="bars" id="by-priority"></div>
+        <h3>Aprobaciones</h3>
+        <dl class="facts" id="approvals"></dl>
+      </section>
+
+      <section id="rendimiento">
+        <h2>Rendimiento</h2>
+        <dl class="facts" id="chat-latency"></dl>
+        <h3>Latencia por agente (p95, ms)</h3>
+        <div class="bars" id="agent-latency"></div>
+      </section>
+
+      <section id="costos">
+        <h2>Costos</h2>
+        <dl class="facts" id="costs"></dl>
+        <h3>Por modelo</h3>
+        <div class="table-wrap"><table id="by-model"><thead><tr><th>Modelo</th><th>Llamadas</th><th>Tokens</th><th>USD</th></tr></thead><tbody></tbody></table></div>
+      </section>
+
+      <section id="orquestacion">
+        <h2>Orquestación</h2>
+        <dl class="facts" id="states"></dl>
+        <h3>Estados por agente</h3>
+        <div class="stacks" id="agent-states"></div>
+      </section>
+    </div>
+  </main>
+  <script src="dashboard.js"></script>
+</body>
+</html>
