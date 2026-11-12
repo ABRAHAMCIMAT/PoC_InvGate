@@ -11,7 +11,7 @@ def build_approval_card(req: ApprovalRequest) -> dict[str, Any]:
     """Construye una Adaptive Card con botones Aprobar/Rechazar."""
     return {
         "type": "AdaptiveCard",
-        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "$schema": "https://adaptivecards.io/schemas/adaptive-card.json",
         "version": "1.4",
         "body": [
             {
