@@ -31,3 +31,8 @@ def test_redact_is_linear_on_hostile_input() -> None:
 def test_redact_keeps_surrounding_text() -> None:
     out = redact("tel +52 55 1234 5678 fin; otro 555-123-4567. correo a.b+c@x.co.mx!")
     assert out == "tel [PHONE] fin; otro [PHONE]. correo [EMAIL]!"
+
+
+def test_redact_ignores_dates_and_short_numbers() -> None:
+    text = "versión 1.2.3, fecha 2026-11-12, IP 10.0.0.1, ticket DEMO-0001, ---------- fin"
+    assert redact(text) == text

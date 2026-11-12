@@ -177,16 +177,18 @@ function drainEvents(buffer) {
   return rest;
 }
 
-async function readStream(resp) {
-  const reader = resp.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  let chunk = await reader.read();
-  while (!chunk.done) {
-    buffer = drainEvents(buffer + decoder.decode(chunk.value, { stream: true }));
-    chunk = await reader.read();
+// Lee el stream fragmento a fragmento, en orden; cada lectura espera a que termine la anterior.
+async function pump(reader, decoder, buffer) {
+  const { value, done } = await reader.read();
+  if (done) {
+    drainEvents(buffer + "\n\n");
+    return;
   }
-  drainEvents(buffer + "\n\n");
+  await pump(reader, decoder, drainEvents(buffer + decoder.decode(value, { stream: true })));
+}
+
+async function readStream(resp) {
+  await pump(resp.body.getReader(), new TextDecoder(), "");
 }
 
 function errorMessage(status) {
