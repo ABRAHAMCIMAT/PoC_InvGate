@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -33,6 +34,6 @@ jobs:
           echo "::warning title=SonarCloud omitido::Falta el secreto SONAR_TOKEN. Créalo en Settings > Secrets and variables > Actions con un token de sonarcloud.io (proyecto ABRAHAMCIMAT_PoC_InvGate)."
       - name: SonarCloud Scan
         if: env.SONAR_TOKEN != ''
-        uses: SonarSource/sonarcloud-github-action@e44258b109568baa0df60ed515909fc6c72cba92
+        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
