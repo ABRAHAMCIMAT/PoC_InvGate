@@ -5,7 +5,7 @@
 | # | Criterio | Estado | Evidencia |
 |---|----------|--------|-----------|
 | 1 | `make local-up` levanta el API y pasa healthcheck | ✅ | `GET /api/health` → `{"status":"ok"}` |
-| 2 | CRUD de tickets y comentarios en InvGate por API | ⏳ Código listo | `tests/test_invgate_client.py`, `tests/test_client_extra.py`. Falta ejecutar `make check-invgate ARGS="--write"` en una instancia real. |
+| 2 | CRUD de tickets y comentarios en InvGate por API | ✅ | `make check-invgate ARGS="--write"` contra la demo pública `webdemo.cloud.invgate.net` (17-11-2026): 11/11 comprobaciones, ticket #360 creado, leído, actualizado y comentado. Salida en [`evidencias/invgate-crud-2026-11-17.txt`](evidencias/invgate-crud-2026-11-17.txt). |
 | 3 | 100 % de tests del adaptador en verde | ✅ | `tests/test_invgate_*.py`, `tests/test_providers_extra.py` |
 | 4 | Caso extremo a extremo con mock (solicitud → ticket → seguimiento) | ✅ | `tests/test_e2e_flow.py::test_approval_round_trip` |
 | 5 | Semáforo de agentes funcionando | ✅ | `tests/test_orchestrator_states.py` (verde, amarillo y rojo), `frontend/app.js` |
@@ -22,4 +22,4 @@
 
 ## Nota
 
-Los criterios 2 y 6 necesitan credenciales reales de InvGate y de un tenant de Microsoft Teams. El procedimiento está en [VALIDACION_REAL.md](VALIDACION_REAL.md).
+El criterio 2 se validó contra la demo pública de InvGate con Basic auth. El criterio 6 necesita un tenant de Microsoft Teams. El procedimiento está en [VALIDACION_REAL.md](VALIDACION_REAL.md).

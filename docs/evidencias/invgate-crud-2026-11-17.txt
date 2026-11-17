@@ -1,0 +1,27 @@
+# make check-invgate ARGS="--write" contra https://webdemo.cloud.invgate.net (demo pública), Basic auth, 2026-11-17
+
+✓ GET /incident.attributes.priority
+    1=Low, 2=Medium, 3=High, 4=Urgent, 5=Critical
+✓ GET /incident.attributes.status
+    1=New, 2=Open, 3=Pending, 4=Waiting, 5=Resolved
+✓ GET /incident.attributes.type
+    3=Question, 1=Incident, 6=Major incident, 2=Service Request, 4=Problem
+✓ GET /incident.attributes.source
+    2=Web, 3=Phone, 1=Email, 4=In person, 5=IM
+✓ GET /categories
+    54=Change request, 53=Article creation, 52=Employee offboarding, 51=New employee setup, 50=IT
+✓ GET /helpdesks
+    2=IT Support Default, 10=Desktop Support, 12=Datacenter Support, 14=Network, 16=Facilities
+✓ POST /incident
+    request_id=360
+✓ GET /incident?id=360
+✓ PUT /incident
+✓ POST /incident.comment
+✓ GET /incident.comment
+Todo correcto.
+--- Verificación del ticket 360
+{'id': 360, 'pretty_id': '#360', 'title': '[Valkiria PoC] prueba actualizada', 'status_id': 3, 'category_id': 1, 'priority_id': 2, 'creator_id': 8, 'user_id': 8, 'source_id': 2, 'type_id': 1}
+comentario: 1200 8 'Comentario de prueba del PoC'
+--- Cierre del ticket 360
+✓ PUT /incident status=closed
+status_id ahora: 3 closed_at: None

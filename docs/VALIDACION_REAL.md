@@ -58,6 +58,18 @@ La documentación pública de InvGate no precisa estos detalles. Si alguno falla
 | Parámetros de POST/PUT | cuerpo JSON | Si la instancia exige *form data*, cambiar `json=` por `data=` en `backend/invgate/client.py` |
 | Nombres de campo | `category_id`, `priority_id`, `customer_id`… | `INVGATE_FIELD_MAP` |
 
+### 1.5 Resultado en la demo pública (17-11-2026)
+
+Validado contra `https://webdemo.cloud.invgate.net` con Basic auth (credencial de API con endpoints habilitados). Evidencia: [`evidencias/invgate-crud-2026-11-17.txt`](evidencias/invgate-crud-2026-11-17.txt).
+
+- `INVGATE_BASE_URL` es la URL de la instancia (`https://<instancia>.cloud.invgate.net`), no la página comercial de la demo.
+- El prefijo `/api/v1`, el cuerpo JSON y los nombres de campo por defecto funcionan sin cambios.
+- Ids usados en la demo: `INVGATE_DEFAULTS={"creator_id": 8, "customer_id": 8, "category_id": 1, "source_id": 2, "priority_id": 2}`, estados `open=2`, `waiting=4`, `resolved=5`, `closed=6`.
+- OAuth2: el token se emite en `<base>/oauth/v2.0/access_token`, pero sin permisos (`scopes: []`) la API responde 403 a todo. Hay que habilitar endpoints en la credencial.
+- Sin permiso sobre `users`, los ids de usuario se obtienen de un incidente existente (`GET /incident?id=1` → `creator_id`, `user_id`).
+- `PUT /incident` acepta `status_id` pero no cambia el estado: InvGate lo gestiona con su flujo de trabajo. Los tickets de prueba se cierran desde la interfaz.
+- El `.env` se carga con `python-dotenv` o exportando las variables; con `source .env`, los valores con caracteres especiales van entre comillas simples.
+
 ## 2. Microsoft Teams (criterio 6)
 
 ### 2.1 Túnel HTTPS
