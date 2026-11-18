@@ -35,15 +35,28 @@ class InvGateProvider(TicketingProvider):
         return self._client.list_incidents(limit)
 
     def request_approval(self, incident_id: str, approver: str, description: str) -> str | None:
-        """Crea una aprobación espontánea y devuelve su approval_id."""
+        """Devuelve el approval_id de la aprobación pendiente del incidente.
+
+        Si el flujo de InvGate ya creó una (aprobación definida por categoría), se reutiliza:
+        InvGate no admite una aprobación espontánea mientras haya otra pendiente (HTTP 409).
+        Si no hay ninguna, se crea una espontánea.
+        """
         if not approver:
             raise ValueError("POC_MANAGER_INVGATE_ID es obligatorio para aprobaciones en InvGate")
+        existing = self._latest_pending(incident_id)
+        if existing is not None:
+            return existing
         self._client.request_approval(incident_id, approver, description, self.author_id or approver)
-        pending = self._client.list_approvals(incident_id, only_pending=True)
+        return self._latest_pending(incident_id)
+
+    def _latest_pending(self, incident_id: str) -> str | None:
+        pending = [
+            a for a in self._client.list_approvals(incident_id, only_pending=True) if a.get("id") is not None
+        ]
         if not pending:
             return None
-        latest = max(pending, key=lambda a: int(str(a.get("id", 0))) if str(a.get("id", "")).isdigit() else 0)
-        return str(latest.get("id")) if latest.get("id") is not None else None
+        latest = max(pending, key=lambda a: int(str(a["id"])) if str(a["id"]).isdigit() else 0)
+        return str(latest["id"])
 
     def resolve_approval(
         self,

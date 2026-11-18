@@ -79,3 +79,22 @@ def build_result_card(req: ApprovalRequest) -> dict[str, Any]:
         "version": "1.4",
         "body": body,
     }
+
+
+RETIRED_TEXT = (
+    "Esta tarjeta pertenece a una versión anterior del bot y ya no está activa. "
+    "Las solicitudes nuevas llegan con su propia tarjeta."
+)
+
+
+def build_retired_card() -> dict[str, Any]:
+    """Tarjeta sin botones que sustituye a las de versiones anteriores (`Action.Execute`)."""
+    return {
+        "type": "AdaptiveCard",
+        "$schema": "https://adaptivecards.io/schemas/adaptive-card.json",
+        "version": "1.4",
+        "body": [
+            {"type": "TextBlock", "size": "Medium", "weight": "Bolder", "text": "Tarjeta no vigente"},
+            {"type": "TextBlock", "text": RETIRED_TEXT, "wrap": True, "isSubtle": True},
+        ],
+    }

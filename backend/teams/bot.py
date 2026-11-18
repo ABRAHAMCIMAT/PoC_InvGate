@@ -6,12 +6,20 @@ import logging
 
 from botbuilder.core import ActivityHandler, CardFactory, MessageFactory, TurnContext
 from botbuilder.core.teams import TeamsInfo
+from botbuilder.schema import AdaptiveCardInvokeResponse, AdaptiveCardInvokeValue
 
 from backend.approvals.service import ApprovalDecision, ApprovalForbiddenError, ApprovalService
-from backend.teams.adaptive_card import NOTE_INPUT_ID, build_approval_card, build_result_card
+from backend.teams.adaptive_card import (
+    NOTE_INPUT_ID,
+    build_approval_card,
+    build_result_card,
+    build_retired_card,
+)
 from backend.teams.references import ReferenceStore
 
 logger = logging.getLogger(__name__)
+
+ADAPTIVE_CARD_CONTENT_TYPE = "application/vnd.microsoft.card.adaptive"
 
 WELCOME = (
     "Hola, soy el bot de aprobaciones de Valkiria. Te enviaré aquí las solicitudes que requieran tu "
@@ -101,6 +109,20 @@ class ApprovalBot(ActivityHandler):
         await self._replace_card(turn_context, req)
         label = "aprobada" if req.decision == ApprovalDecision.APPROVED else "rechazada"
         await turn_context.send_activity(f"Aprobación {approval_id} {label}.")
+
+    async def on_adaptive_card_invoke(
+        self, turn_context: TurnContext, invoke_value: AdaptiveCardInvokeValue
+    ) -> AdaptiveCardInvokeResponse:
+        """Botones `Action.Execute` de tarjetas de versiones anteriores.
+
+        Las tarjetas actuales usan `Action.Submit`. Teams sustituye la tarjeta pulsada por la que
+        devuelve esta respuesta, así que la antigua se queda sin botones y el clic no da error.
+        """
+        verb = (invoke_value.action or {}).get("verb")
+        logger.info("Clic en una tarjeta antigua (verb=%s); se reemplaza sin botones", verb)
+        return AdaptiveCardInvokeResponse(
+            status_code=200, type=ADAPTIVE_CARD_CONTENT_TYPE, value=build_retired_card()
+        )
 
     @staticmethod
     async def _replace_card(turn_context: TurnContext, req) -> None:

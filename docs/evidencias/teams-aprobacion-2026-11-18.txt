@@ -1,0 +1,19 @@
+Criterio 6 · Aprobación desde Microsoft Teams (bot «Help Desk IA») · 18-11-2026
+Instancia InvGate: https://webdemo.cloud.invgate.net (demo pública, Basic auth)
+
+1. Chat web: «Necesito instalar Figma» -> ticket #362, categoría New Software (25)
+   InvGate crea por flujo la aprobación 42 (tipo Defined): 'Any new software request, needs an installation approval.'
+   El PoC reutiliza la aprobación pendiente y envía la Adaptive Card al manager en Teams (APR-1c2fecb117).
+
+2. Teams: el manager (carlos.carballo@valtre.com) escribe una observación y pulsa Aprobar.
+   POST /api/messages desde 52.112.116.178 -> 201; la tarjeta se reemplaza por el resultado, sin botones.
+
+3. Estado en InvGate:
+   GET /incident.approval?request_id=362 -> [{"id": 42, "author_id": 2, "status": 1, "type": 1, "created_at": 1795013081, "reminder_count": null, "is_using_approval_manager": 0, "reassigned": 0, "reminders_sent": 0, "last_reminder_date": 0, "expire_at": null, "approval_request_id": 2, "approval_request_description": "Any new software request, needs an installation approval."}]
+   GET /incident.approval.possible_voters?approval_id=42 -> [{"user_id": 3, "status": -2}, {"user_id": 4, "status": 1}, {"user_id": 5, "status": -2}, {"user_id": 6, "status": -2}, {"user_id": 7, "status": -2}]
+   (status 1 = Approved; -2 = Annulled; usuario 4 = John Sykes, POC_MANAGER_INVGATE_ID)
+   comentario 1202 autor 8 visible=True: Artículo sugerido KB-003: Solicitar instalación de software. El software fuera del catálogo estándar requiere aprobación
+   comentario 1203 autor 4 visible=True: Solo la intalacion de figma
+
+4. PoC (backend/data/approvals.json): {"id": "APR-1c2fecb117", "incident_id": "362", "decision": "approved", "note": "Solo la intalacion de figma", "decided_by": "carlos.carballo@valtre.com", "external_id": "42"}
+   El chat web del solicitante muestra la decisión y la observación (GET /api/conversations/4d4f57ef0220).
