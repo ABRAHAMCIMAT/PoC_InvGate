@@ -1,0 +1,56 @@
+F1-09 · OAuth 2.0 client credentials contra la demo pública de InvGate · 18-11-2026
+Instancia: https://webdemo.cloud.invgate.net · token: <base>/oauth/v2.0/access_token
+
+Hallazgo: sin el parámetro `scope`, el token sale con scopes=[] y la API responde 403.
+InvGate solo incluye los permisos que se piden de forma explícita (formato api.v1.<recurso>:<método>)
+y que estén concedidos en API resources de la credencial.
+
+1. Cliente del PoC: OAuth2ClientCredentials · permisos pedidos: 19
+      api.v1.helpdesks:get
+      api.v1.categories:get
+      api.v1.incident:get
+      api.v1.incident:post
+      api.v1.incident:put
+      api.v1.incidents:get
+      api.v1.incident.comment:get
+      api.v1.incident.comment:post
+      api.v1.incident.attributes.category:get
+      api.v1.incident.attributes.type:get
+      api.v1.incident.attributes.priority:get
+      api.v1.incident.attributes.source:get
+      api.v1.incident.attributes.status:get
+      api.v1.incident.attributes.statuses:get
+      api.v1.incident.approval:get
+      api.v1.incident.approval.accept:put
+      api.v1.incident.approval.reject:put
+      api.v1.incident.approval.possible_voters:get
+      api.v1.incident.spontaneous_approval:post
+
+2. make check-invgate ARGS="--write" por OAuth:
+✓ GET /incident.attributes.priority
+    1=Low, 2=Medium, 3=High, 4=Urgent, 5=Critical
+✓ GET /incident.attributes.status
+    1=New, 2=Open, 3=Pending, 4=Waiting, 5=Resolved
+✓ GET /incident.attributes.type
+    3=Question, 1=Incident, 6=Major incident, 2=Service Request, 4=Problem
+✓ GET /incident.attributes.source
+    2=Web, 3=Phone, 1=Email, 4=In person, 5=IM
+✓ GET /categories
+    54=Change request, 53=Article creation, 52=Employee offboarding, 51=New employee setup, 50=IT
+✓ GET /helpdesks
+    2=IT Support Default, 10=Desktop Support, 12=Datacenter Support, 14=Network, 16=Facilities
+✓ POST /incident
+    request_id=360
+✓ GET /incident?id=360
+✓ PUT /incident
+✓ POST /incident.comment
+✓ GET /incident.comment
+Todo correcto.
+
+3. Aprobación desde Teams por OAuth: «Necesito instalar Figma» -> ticket #361, aprobación 41 del flujo de InvGate
+   GET /incident.approval?request_id=361 -> [{"id": 41, "author_id": 2, "status": 1, "type": 1, "created_at": "2026-11-18T21:26:35+00:00", "reminder_count": null, "is_using_approval_manager": 0, "reassigned": 0, "reminders_sent": 0, "last_reminder_date": 0, "expire_at": null, "approval_request_id": 2, "approval_request_description": "Any new software request, needs an installation approval."}]
+   GET /incident.approval.possible_voters?approval_id=41 -> [{"user_id": 3, "status": -2}, {"user_id": 4, "status": 1}, {"user_id": 5, "status": -2}, {"user_id": 6, "status": -2}, {"user_id": 7, "status": -2}]
+   comentario autor 8: Artículo sugerido KB-003: Solicitar instalación de software. El software fuera del catálogo estándar requiere 
+   comentario autor 4: Se aprueba Figma
+
+4. PoC: {"id": "APR-be9038fb50", "incident_id": "361", "decision": "approved", "note": "Se aprueba Figma", "decided_by": "carlos.carballo@valtre.com", "external_id": "41"}
