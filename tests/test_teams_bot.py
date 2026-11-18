@@ -230,3 +230,33 @@ def test_webhook_notifier() -> None:
 
     assert WebhookNotifier("https://hook", transport=httpx.MockTransport(fail)).notify(req) is False
     assert NullNotifier().notify(req) is False
+
+
+def _invoke(adapter: TestAdapter, value: dict):
+    activity = Activity(
+        type="invoke",
+        name="adaptiveCard/action",
+        value=value,
+        from_property=ChannelAccount(id="user1", name="Ana"),
+    )
+    asyncio.run(adapter.receive_activity(activity))
+    return adapter.get_next_activity()
+
+
+def test_legacy_execute_card_is_replaced_without_buttons() -> None:
+    _, _, _, _, adapter = _setup()
+    response = _invoke(adapter, {"action": {"type": "Action.Execute", "verb": "approve", "data": {}}})
+    assert response.type == "invokeResponse"
+    assert response.value.status == 200
+    body = response.value.body
+    assert body["statusCode"] == 200
+    assert body["type"] == "application/vnd.microsoft.card.adaptive"
+    card = body["value"]
+    assert "actions" not in card
+    assert card["body"][0]["text"] == "Tarjeta no vigente"
+
+
+def test_invoke_with_unsupported_action_is_bad_request() -> None:
+    _, _, _, _, adapter = _setup()
+    response = _invoke(adapter, {"action": {"type": "Action.Submit"}})
+    assert response.value.status == 400

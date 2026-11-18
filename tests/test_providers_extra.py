@@ -42,15 +42,18 @@ def test_base_resolve_approval_rejects_with_note() -> None:
 
 
 class FakeClient:
-    def __init__(self, pending=None) -> None:
+    def __init__(self, pending=None, before=None) -> None:
         self.calls: list[tuple] = []
         self.pending = pending if pending is not None else [{"id": "7"}, {"id": "12"}]
+        self.before = before or []
+        self.requested = False
 
     def request_approval(self, *a):
         self.calls.append(("request", *a))
+        self.requested = True
 
     def list_approvals(self, incident_id, only_pending=False):
-        return self.pending
+        return self.pending if self.requested else self.before
 
     def accept_approval(self, *a):
         self.calls.append(("accept", *a))
@@ -79,6 +82,14 @@ def test_invgate_provider_native_approvals() -> None:
     assert p.list_comments("10") == []
     with pytest.raises(ValueError):
         p.request_approval("10", "", "x")
+
+
+def test_invgate_provider_reuses_workflow_approval() -> None:
+    # La categoría ya generó una aprobación en InvGate: no se pide otra espontánea (daría 409).
+    client = FakeClient(before=[{"id": "9"}, {"id": "41"}])
+    p = InvGateProvider(client, author_id="1")  # type: ignore[arg-type]
+    assert p.request_approval("361", "4", "Instalar Figma") == "41"
+    assert client.calls == []
 
 
 def test_invgate_provider_without_pending() -> None:
