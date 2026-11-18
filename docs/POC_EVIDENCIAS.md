@@ -9,7 +9,7 @@
 | 3 | 100 % de tests del adaptador en verde | ✅ | `tests/test_invgate_*.py`, `tests/test_providers_extra.py` |
 | 4 | Caso extremo a extremo con mock (solicitud → ticket → seguimiento) | ✅ | `tests/test_e2e_flow.py::test_approval_round_trip` |
 | 5 | Semáforo de agentes funcionando | ✅ | `tests/test_orchestrator_states.py` (verde, amarillo y rojo), `frontend/app.js` |
-| 6 | Manager aprueba/rechaza desde Teams y el ticket refleja la decisión | ⏳ Código listo | `tests/test_teams_bot.py` (bot, tarjeta y notificación proactiva con el adaptador de pruebas). Falta el tenant real. |
+| 6 | Manager aprueba/rechaza desde Teams y el ticket refleja la decisión | ✅ | Bot «Help Desk IA» en el tenant `valtre.com` con la demo pública de InvGate (18-11-2026): «Necesito instalar Figma» → ticket #362, el manager aprueba con observación en Teams, la tarjeta se reemplaza sin botones, la aprobación 42 queda *Approved* por John Sykes con la nota como comentario y el chat web muestra la decisión. Salida en [`evidencias/teams-aprobacion-2026-11-18.txt`](evidencias/teams-aprobacion-2026-11-18.txt). |
 | 7 | Segundo clic sin efecto | ✅ | `tests/test_approvals.py::test_second_click_ignored`, `tests/test_teams_bot.py::test_second_click_is_ignored` |
 | 8 | Solicitante conversa y ve el estado del ticket y las observaciones | ✅ | `tests/test_e2e_flow.py` (nota del manager en `/api/conversations/{id}`), panel de aprobación en `frontend/` |
 | 9 | Dashboard poblado con telemetría de demo | ✅ | `make seed` y `/dashboard.html`, `tests/test_scripts.py::test_seed_populates_metrics` |
@@ -17,9 +17,9 @@
 
 ## Calidad (local, Python 3.12)
 
-- 170 pruebas en verde, cobertura de 98.16 % (mínimo 90.01 %).
+- 181 pruebas en verde, cobertura de 98.04 % (mínimo 90.01 %).
 - Ruff, Mypy y Bandit sin hallazgos.
 
 ## Nota
 
-El criterio 2 se validó contra la demo pública de InvGate con Basic auth. El criterio 6 necesita un tenant de Microsoft Teams. El procedimiento está en [VALIDACION_REAL.md](VALIDACION_REAL.md).
+Los criterios 2 y 6 se validaron contra la demo pública de InvGate con Basic auth y, para el 6, con el bot de Teams «Help Desk IA». El procedimiento y lo aprendido están en [VALIDACION_REAL.md](VALIDACION_REAL.md).

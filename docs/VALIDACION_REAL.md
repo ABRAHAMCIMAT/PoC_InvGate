@@ -1,6 +1,6 @@
 # Validación en real: InvGate y Microsoft Teams
 
-Los criterios 2 y 6 del PoC requieren una instancia de InvGate y un tenant de Microsoft 365. Todo el código está listo y probado contra respuestas simuladas. Esta guía es lo que falta ejecutar con credenciales reales.
+Los criterios 2 y 6 del PoC requieren una instancia de InvGate y un tenant de Microsoft 365. Esta guía explica cómo validarlos con credenciales reales; los resultados contra la demo pública están en los apartados 1.5 y 2.5.
 
 ## 1. InvGate Service Management (criterio 2)
 
@@ -114,6 +114,16 @@ Sigue [`infra/README.md`](../infra/README.md) para empaquetar `infra/teams/manif
    - En el chat web, el solicitante ve la decisión y la observación.
    - Un segundo clic responde «Esta aprobación ya fue resuelta».
    - Si otro usuario pulsa, recibe «Solo el manager asignado puede decidir».
+
+### 2.5 Resultado con «Help Desk IA» (18-11-2026)
+
+Validado con el bot «Help Desk IA» (tenant `valtre.com`) y la demo pública de InvGate. Evidencia: [`evidencias/teams-aprobacion-2026-11-18.txt`](evidencias/teams-aprobacion-2026-11-18.txt).
+
+- En la demo, la categoría *New Software* crea sola una aprobación (tipo *Defined*) al abrir el ticket. InvGate no admite una aprobación espontánea mientras haya otra pendiente (HTTP 409), así que el PoC reutiliza la pendiente y solo crea una espontánea si no hay ninguna.
+- El voto por API (`PUT /incident.approval.accept`) deja la aprobación *Approved*, anula los votos del resto y guarda la observación como comentario visible para el cliente. El estado del ticket lo sigue gestionando el flujo de InvGate.
+- Los botones `Action.Execute` de tarjetas de versiones anteriores del bot ya no dan error: el bot las sustituye por «Tarjeta no vigente», sin botones.
+- Con un túnel *quick* de Cloudflare la URL cambia en cada arranque: hay que actualizar el *messaging endpoint* del Azure Bot y `PUBLIC_BASE_URL`. **Test in Web Chat** del Azure Bot sirve para comprobarlo sin Teams.
+- La demo pública se reinicia: borra credenciales de API y tickets, y reutiliza los números. Si la API pasa a 401, hay que volver a crear la credencial.
 
 Sin bot, `NOTIFY_CHANNEL=webhook` con `TEAMS_WORKFLOW_URL` publica un aviso en un canal. La decisión se toma entonces con `POST /api/approvals/{id}/decision`.
 
