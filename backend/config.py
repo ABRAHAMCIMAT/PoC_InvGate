@@ -56,6 +56,8 @@ class Settings:
     invgate_client_id: str = field(default_factory=lambda: os.getenv("INVGATE_CLIENT_ID", ""))
     invgate_client_secret: str = field(default_factory=lambda: os.getenv("INVGATE_CLIENT_SECRET", ""))
     invgate_oauth_token_url: str = field(default_factory=lambda: os.getenv("INVGATE_OAUTH_TOKEN_URL", ""))
+    # Permisos a pedir en el token, separados por espacios o comas. Vacío: los que usa el PoC.
+    invgate_oauth_scopes: str = field(default_factory=lambda: os.getenv("INVGATE_OAUTH_SCOPES", ""))
     # Valores por defecto para crear incidentes (JSON), p. ej. {"creator_id": 1, "customer_id": 1}
     invgate_defaults: str = field(default_factory=lambda: os.getenv("INVGATE_DEFAULTS", ""))
     # Usuario InvGate que firma comentarios y aprobaciones del PoC

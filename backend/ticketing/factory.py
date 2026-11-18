@@ -7,7 +7,7 @@ import os
 from typing import Any
 
 from backend.config import Settings
-from backend.invgate.client import InvGateClient, OAuth2ClientCredentials
+from backend.invgate.client import DEFAULT_OAUTH_SCOPES, InvGateClient, OAuth2ClientCredentials
 from backend.ticketing.base import TicketingProvider
 from backend.ticketing.demo import DemoProvider
 from backend.ticketing.invgate import InvGateProvider
@@ -35,7 +35,10 @@ def build_invgate_client(settings: Settings) -> InvGateClient:
         token_url = settings.invgate_oauth_token_url or (
             f"{settings.invgate_base_url.rstrip('/')}/oauth/v2.0/access_token"
         )
-        oauth = OAuth2ClientCredentials(token_url, settings.invgate_client_id, settings.invgate_client_secret)
+        scopes = settings.invgate_oauth_scopes.replace(",", " ").split() or DEFAULT_OAUTH_SCOPES
+        oauth = OAuth2ClientCredentials(
+            token_url, settings.invgate_client_id, settings.invgate_client_secret, scopes=scopes
+        )
     elif not settings.invgate_api_token:
         raise ValueError(
             "TICKETING_PROVIDER=invgate requiere INVGATE_API_TOKEN o INVGATE_CLIENT_ID + INVGATE_CLIENT_SECRET"
