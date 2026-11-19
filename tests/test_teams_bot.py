@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import json
+from types import SimpleNamespace
 
 import httpx
+from botbuilder.core import TurnContext
 from botbuilder.core.adapters import TestAdapter
 from botbuilder.schema import Activity, ChannelAccount, ConversationAccount, ConversationReference
 
@@ -260,3 +262,87 @@ def test_invoke_with_unsupported_action_is_bad_request() -> None:
     _, _, _, _, adapter = _setup()
     response = _invoke(adapter, {"action": {"type": "Action.Submit"}})
     assert response.value.status == 400
+
+
+def _context(activity: Activity) -> TurnContext:
+    return TurnContext(TestAdapter(lambda ctx: None), activity)
+
+
+def _teams_activity(**kw) -> Activity:
+    return Activity(
+        type="message",
+        channel_id="msteams",
+        from_property=ChannelAccount(id="29:manager", name="Carlos"),
+        recipient=ChannelAccount(id="28:bot"),
+        conversation=ConversationAccount(id="a:1"),
+        service_url="https://smba.trafficmanager.net/amer/",
+        **kw,
+    )
+
+
+def test_remember_skips_activity_without_sender_or_recipient() -> None:
+    _, _, _, bot, _ = _setup()
+    asyncio.run(bot._remember(_context(Activity(type="message", recipient=ChannelAccount(id="bot")))))
+    asyncio.run(bot._remember(_context(Activity(type="message", from_property=ChannelAccount(id="u")))))
+    assert bot.references.get() is None
+
+
+def test_email_read_from_teams_member(monkeypatch) -> None:
+    _, _, _, bot, _ = _setup()
+
+    async def member(ctx, user_id):
+        assert user_id == "29:manager"
+        return SimpleNamespace(email="Carlos@Valtre.com", user_principal_name="carlos@valtre.com")
+
+    monkeypatch.setattr("backend.teams.bot.TeamsInfo.get_member", member)
+    asyncio.run(bot._remember(_context(_teams_activity(text="hola"))))
+    assert "carlos@valtre.com" in bot.references._refs
+    assert bot.references.get("carlos@valtre.com").user.id == "29:manager"
+
+
+def test_email_falls_back_to_user_principal_name(monkeypatch) -> None:
+    async def member(ctx, user_id):
+        return SimpleNamespace(email=None, user_principal_name="carlos@valtre.com")
+
+    monkeypatch.setattr("backend.teams.bot.TeamsInfo.get_member", member)
+    assert asyncio.run(ApprovalBot._email(_context(_teams_activity()))) == "carlos@valtre.com"
+
+
+def test_email_unavailable_returns_none(monkeypatch) -> None:
+    async def member(ctx, user_id):
+        raise PermissionError("sin permisos para leer el roster")
+
+    monkeypatch.setattr("backend.teams.bot.TeamsInfo.get_member", member)
+    assert asyncio.run(ApprovalBot._email(_context(_teams_activity()))) is None
+    # Fuera de Teams ni siquiera se consulta.
+    assert asyncio.run(ApprovalBot._email(_context(Activity(type="message", channel_id="webchat")))) is None
+    assert asyncio.run(ApprovalBot._email(_context(Activity(type="message", channel_id="msteams")))) is None
+
+
+def test_card_update_failure_still_confirms_decision(monkeypatch) -> None:
+    _, service, req, _, adapter = _setup()
+
+    async def fail(self, activity):
+        raise RuntimeError("la tarjeta ya no existe")
+
+    monkeypatch.setattr(TurnContext, "update_activity", fail)
+    texts = _vote(adapter, {"approval_id": req.id, "decision": "approved"}, reply_to="card-1")
+    assert texts == [f"Aprobación {req.id} aprobada."]
+    assert service.get(req.id).status == "approved"
+
+
+def test_card_replaced_with_result(monkeypatch) -> None:
+    _, _, req, _, adapter = _setup()
+    updates = []
+
+    async def capture(self, activity):
+        updates.append(activity)
+
+    monkeypatch.setattr(TurnContext, "update_activity", capture)
+    _vote(
+        adapter, {"approval_id": req.id, "decision": "rejected", "note": "Sin presupuesto"}, reply_to="card-1"
+    )
+    assert updates[0].id == "card-1"
+    card = updates[0].attachments[0].content
+    assert "actions" not in card
+    assert "Sin presupuesto" in json.dumps(card, ensure_ascii=False)
