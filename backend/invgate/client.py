@@ -13,7 +13,7 @@ import logging
 import secrets
 import threading
 import time
-from collections.abc import Generator
+from collections.abc import Generator, Sequence
 from typing import Any
 
 import httpx
@@ -64,30 +64,63 @@ class InvGateNotFoundError(InvGateError):
     """Recurso no encontrado en InvGate."""
 
 
+# Permisos que usa el PoC, con el formato de InvGate `api.v1.<recurso>:<método>`.
+# Deben estar concedidos en la credencial (Settings > Integrations > API > API resources).
+DEFAULT_OAUTH_SCOPES: tuple[str, ...] = (
+    "api.v1.helpdesks:get",
+    "api.v1.categories:get",
+    "api.v1.incident:get",
+    "api.v1.incident:post",
+    "api.v1.incident:put",
+    "api.v1.incidents:get",
+    "api.v1.incident.comment:get",
+    "api.v1.incident.comment:post",
+    "api.v1.incident.attributes.category:get",
+    "api.v1.incident.attributes.type:get",
+    "api.v1.incident.attributes.priority:get",
+    "api.v1.incident.attributes.source:get",
+    "api.v1.incident.attributes.status:get",
+    "api.v1.incident.attributes.statuses:get",
+    "api.v1.incident.approval:get",
+    "api.v1.incident.approval.accept:put",
+    "api.v1.incident.approval.reject:put",
+    "api.v1.incident.approval.possible_voters:get",
+    "api.v1.incident.spontaneous_approval:post",
+)
+
+
 class OAuth2ClientCredentials(httpx.Auth):
     """Auth OAuth 2.0 *client credentials* con caché del token y renovación ante 401."""
 
     requires_response_body = True
 
-    def __init__(self, token_url: str, client_id: str, client_secret: str, timeout: float = 15.0) -> None:
+    def __init__(
+        self,
+        token_url: str,
+        client_id: str,
+        client_secret: str,
+        timeout: float = 15.0,
+        scopes: Sequence[str] = DEFAULT_OAUTH_SCOPES,
+    ) -> None:
         self.token_url = token_url
         self.client_id = client_id
         self.client_secret = client_secret
+        self.scopes = " ".join(scopes)
         self.timeout = timeout
         self._token: str | None = None
         self._expires_at = 0.0
         self._lock = threading.Lock()
 
     def _fetch_token(self) -> str:
-        resp = httpx.post(
-            self.token_url,
-            data={
-                "grant_type": "client_credentials",
-                "client_id": self.client_id,
-                "client_secret": self.client_secret,
-            },
-            timeout=self.timeout,
-        )
+        data = {
+            "grant_type": "client_credentials",
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+        }
+        # InvGate solo incluye en el token los permisos que se piden en `scope`; sin él, scopes=[] y 403.
+        if self.scopes:
+            data["scope"] = self.scopes
+        resp = httpx.post(self.token_url, data=data, timeout=self.timeout)
         if resp.status_code >= 400:
             raise InvGateAuthError(f"No se pudo obtener token OAuth2 (HTTP {resp.status_code})")
         body = resp.json()

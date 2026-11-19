@@ -8,7 +8,12 @@ import httpx
 import pytest
 
 from backend.config import Settings
-from backend.invgate.client import InvGateAuthError, InvGateClient, OAuth2ClientCredentials
+from backend.invgate.client import (
+    DEFAULT_OAUTH_SCOPES,
+    InvGateAuthError,
+    InvGateClient,
+    OAuth2ClientCredentials,
+)
 from backend.invgate.models import Incident
 from backend.ticketing.base import TicketingProvider
 from backend.ticketing.factory import build_invgate_client, get_provider
@@ -107,6 +112,7 @@ def test_oauth_token_cached_and_refreshed(monkeypatch) -> None:
 
     def fake_post(url, data, timeout):
         posts.append((url, data["grant_type"]))
+        assert "api.v1.incident:get" in data["scope"].split()
         return httpx.Response(200, json={"access_token": next(tokens), "expires_in": 3600})
 
     monkeypatch.setattr("backend.invgate.client.httpx.post", fake_post)
@@ -128,6 +134,31 @@ def test_oauth_token_cached_and_refreshed(monkeypatch) -> None:
         ("https://x/oauth/token", "client_credentials"),
     ]
     assert oauth.token() == "t2"
+
+
+def test_oauth_scopes_from_settings(monkeypatch) -> None:
+    sent = []
+
+    def fake_post(url, data, timeout):
+        sent.append(data.get("scope"))
+        return httpx.Response(200, json={"access_token": "t", "expires_in": 3600})
+
+    monkeypatch.setattr("backend.invgate.client.httpx.post", fake_post)
+    custom = build_invgate_client(
+        _settings(
+            invgate_base_url="https://x",
+            invgate_client_id="id",
+            invgate_client_secret="s",
+            invgate_oauth_scopes="api.v1.incident:get, api.v1.incident:post",
+        )
+    )
+    custom._client.auth.token()
+    default = build_invgate_client(
+        _settings(invgate_base_url="https://x", invgate_client_id="id", invgate_client_secret="s")
+    )
+    default._client.auth.token()
+    OAuth2ClientCredentials("u", "i", "s", scopes=()).token()
+    assert sent == ["api.v1.incident:get api.v1.incident:post", " ".join(DEFAULT_OAUTH_SCOPES), None]
 
 
 def test_oauth_errors(monkeypatch) -> None:

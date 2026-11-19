@@ -17,9 +17,9 @@
 
 ## Calidad (local, Python 3.12)
 
-- 181 pruebas en verde, cobertura de 98.04 % (mínimo 90.01 %).
+- 182 pruebas en verde, cobertura de 98.05 % (mínimo 90.01 %).
 - Ruff, Mypy y Bandit sin hallazgos.
 
 ## Nota
 
-Los criterios 2 y 6 se validaron contra la demo pública de InvGate con Basic auth y, para el 6, con el bot de Teams «Help Desk IA». El procedimiento y lo aprendido están en [VALIDACION_REAL.md](VALIDACION_REAL.md).
+Los criterios 2 y 6 se validaron contra la demo pública de InvGate con Basic auth y, para el 6, con el bot de Teams «Help Desk IA». Después se repitieron por OAuth 2.0 (CRUD 11/11 y aprobación desde Teams): [`evidencias/invgate-oauth-2026-11-18.txt`](evidencias/invgate-oauth-2026-11-18.txt). El procedimiento y lo aprendido están en [VALIDACION_REAL.md](VALIDACION_REAL.md).

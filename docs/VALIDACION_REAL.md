@@ -9,7 +9,7 @@ Los criterios 2 y 6 del PoC requieren una instancia de InvGate y un tenant de Mi
 En InvGate, **Settings → Integrations → API**, crea una credencial con una de estas opciones:
 
 - **API token (Basic auth):** usuario `api` (o el que te asignen) y el token. Configura `INVGATE_USERNAME` e `INVGATE_API_TOKEN`.
-- **OAuth 2.0 client credentials:** Client ID y Client Secret. Configura `INVGATE_CLIENT_ID` e `INVGATE_CLIENT_SECRET`. Si tu instancia no usa `<base>/oauth/v2.0/access_token`, indica la URL en `INVGATE_OAUTH_TOKEN_URL`.
+- **OAuth 2.0 client credentials:** Client ID y Client Secret. Configura `INVGATE_CLIENT_ID` e `INVGATE_CLIENT_SECRET`. Si tu instancia no usa `<base>/oauth/v2.0/access_token`, indica la URL en `INVGATE_OAUTH_TOKEN_URL`. En **API resources** de la credencial concede los endpoints que usa el PoC (lista en `DEFAULT_OAUTH_SCOPES`, `backend/invgate/client.py`).
 
 ```bash
 TICKETING_PROVIDER=invgate
@@ -65,7 +65,7 @@ Validado contra `https://webdemo.cloud.invgate.net` con Basic auth (credencial d
 - `INVGATE_BASE_URL` es la URL de la instancia (`https://<instancia>.cloud.invgate.net`), no la página comercial de la demo.
 - El prefijo `/api/v1`, el cuerpo JSON y los nombres de campo por defecto funcionan sin cambios.
 - Ids usados en la demo: `INVGATE_DEFAULTS={"creator_id": 8, "customer_id": 8, "category_id": 1, "source_id": 2, "priority_id": 2}`, estados `open=2`, `waiting=4`, `resolved=5`, `closed=6`.
-- OAuth2: el token se emite en `<base>/oauth/v2.0/access_token`, pero sin permisos (`scopes: []`) la API responde 403 a todo. Hay que habilitar endpoints en la credencial.
+- OAuth2: el token se emite en `<base>/oauth/v2.0/access_token`. InvGate solo incluye en el token los permisos que se piden en el parámetro `scope` (formato `api.v1.<recurso>:<método>`) y que estén concedidos en **API resources** de la credencial; sin `scope`, sale con `scopes: []` y la API responde 403. El PoC pide por defecto los 19 permisos que usa (`INVGATE_OAUTH_SCOPES` permite cambiarlos). Validado por OAuth el 18-11-2026: CRUD 11/11 y aprobación desde Teams ([`evidencias/invgate-oauth-2026-11-18.txt`](evidencias/invgate-oauth-2026-11-18.txt)).
 - Sin permiso sobre `users`, los ids de usuario se obtienen de un incidente existente (`GET /incident?id=1` → `creator_id`, `user_id`).
 - `PUT /incident` acepta `status_id` pero no cambia el estado: InvGate lo gestiona con su flujo de trabajo. Los tickets de prueba se cierran desde la interfaz.
 - El `.env` se carga con `python-dotenv` o exportando las variables; con `source .env`, los valores con caracteres especiales van entre comillas simples.
