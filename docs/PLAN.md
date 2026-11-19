@@ -6,7 +6,7 @@ Replicar el PoC multiagente de `valkiria_servitonic` sustituyendo ServiceTonic p
 
 ## Diferencias clave ServiceTonic → InvGate
 
-- **Auth:** InvGate usa API token (usuario `api` + token) u OAuth 2.0 client credentials, no usuario/contraseña + project ID.
+- **Auth:** InvGate usa API token (usuario + token, Basic auth) u OAuth 2.0 client credentials con scopes `api.v1.<recurso>:<método>`, no usuario/contraseña + project ID.
 - **Endpoints:** `/incident` (GET/PUT/POST), `/incident.comment`, `/incident.approval` + `accept/reject/cancel/add_voter`, `/incident.custom_approval`, `/incident.reassign`, `/incident.cancel`, `/incident.reopen`, catálogos `/incident.attributes.*`, `/categories`, `/users`, `/helpdesks`.
 - **Aprobaciones:** InvGate tiene aprobaciones nativas (predefinidas y espontáneas) con votos y notas; el PoC las aprovechará en lugar de un mecanismo propio.
 
@@ -23,7 +23,7 @@ Replicar el PoC multiagente de `valkiria_servitonic` sustituyendo ServiceTonic p
 - CI (`.github/workflows/ci.yml`): lint, tipos, tests, Bandit, pip-audit, build Docker.
 - **Criterio de aceptación:** `make local-up` levanta el API y pasa healthcheck; CI verde.
 
-## Fase 1 — Adaptador InvGate (núcleo) ✅ (código; validación real pendiente)
+## Fase 1 — Adaptador InvGate (núcleo) ✅
 
 **Objetivo:** Cliente de API InvGate con CRUD de tickets y catálogos.
 
@@ -34,6 +34,7 @@ Replicar el PoC multiagente de `valkiria_servitonic` sustituyendo ServiceTonic p
 - Mapeo de campos y valores (`INVGATE_FIELD_MAP`, `INVGATE_VALUE_MAP`), con `TICKETING_PROVIDER=demo|simulated|invgate`.
 - Tests unitarios con mock del cliente.
 - **Criterio de aceptación:** crear/consultar/actualizar/comentar un ticket real en InvGate por API; 100 % de los tests del adaptador en verde.
+- **Resultado:** validado contra la demo pública con Basic auth y con OAuth 2.0 (11/11). OAuth exige pedir los permisos en `scope`.
 
 ## Fase 2 — Agentes multiagente ✅
 
@@ -45,7 +46,7 @@ Replicar el PoC multiagente de `valkiria_servitonic` sustituyendo ServiceTonic p
 - Endpoints `/api/chat`, `/api/chat/stream` (SSE por agente), `/api/conversations`, `/api/escalate`.
 - **Criterio de aceptación:** un caso de extremo a extremo (solicitud → clasificación → creación de ticket en InvGate → seguimiento) con mock; semáforo de agentes funcionando.
 
-## Fase 3 — Aprobaciones InvGate + Microsoft Teams ✅ (código)
+## Fase 3 — Aprobaciones InvGate + Microsoft Teams ✅
 
 **Objetivo:** Aprobaciones interactivas usando las nativas de InvGate.
 
@@ -54,6 +55,7 @@ Replicar el PoC multiagente de `valkiria_servitonic` sustituyendo ServiceTonic p
 - Sincronizar la decisión con InvGate (`/incident.approval.accept` / `.reject` con `user_id` y `note`).
 - Bot de Teams (Bot Framework), túnel HTTPS temporal, `NOTIFY_CHANNEL=teams`.
 - **Criterio de aceptación:** el manager aprueba/rechaza desde Teams y el ticket en InvGate refleja la decisión; segundo clic sin efecto.
+- **Resultado:** validado con el bot «Help Desk IA». Si el flujo de InvGate ya creó la aprobación (p. ej. por categoría), el PoC la reutiliza en lugar de crear una espontánea.
 
 ## Fase 4 — Frontend y chat web ✅
 
@@ -70,17 +72,18 @@ Replicar el PoC multiagente de `valkiria_servitonic` sustituyendo ServiceTonic p
 - Telemetría JSONL modelo-agnóstica, dashboard de 4 dimensiones (negocio/ITSM, rendimiento, costos, orquestación), Langfuse opcional.
 - **Criterio de aceptación:** dashboard poblado con telemetría de demo; endpoints protegidos por rol.
 
-## Fase 6 — Calidad, pruebas y cierre ✅ (SonarCloud requiere `SONAR_TOKEN`)
+## Fase 6 — Calidad, pruebas y cierre ✅
 
 **Objetivo:** Cerrar el PoC con 10/10 criterios.
 
 - pytest unit/integration/e2e con cobertura >90 %; Ruff, Mypy, Bandit, pip-audit, SonarCloud.
 - Colección de Bruno para pruebas de API (incluida la de InvGate, solo lectura para no consumir cuota).
-- Documentación C4 y LLMOps en español; `docs/POC_LOCAL.md`, `docs/ESTADO_DESARROLLO.md`, `docs/POC_EVIDENCIAS.md`.
+- Documentación C4 y LLMOps en español; `docs/POC_LOCAL.md`, `docs/ESTADO_DESARROLLO.md`, `docs/POC_EVIDENCIAS.md`, manual de usuario y manual técnico.
 - **Criterio de aceptación:** 10/10 criterios cumplidos en real (tickets reales en InvGate, bot de Teams en tenant, calidad en verde).
+- **Resultado:** 10/10 criterios, 188 pruebas, 98,5 % de cobertura y SonarCloud en verde.
 
 ---
 
 ## Nota de acceso
 
-El adaptador de InvGate se construye contra la API pública documentada. La validación "en real" de las Fases 1 y 3 ([`VALIDACION_REAL.md`](VALIDACION_REAL.md)) requiere la URL de instancia y el token de una instancia InvGate real (configurables en `.env`). El resto del PoC corre con `TICKETING_PROVIDER=demo|simulated` y LLM mock sin credenciales.
+El adaptador de InvGate se construyó contra la API pública documentada y se validó contra la demo pública `webdemo.cloud.invgate.net` ([`VALIDACION_REAL.md`](VALIDACION_REAL.md)). Para otra instancia basta con configurar su URL, sus credenciales y sus ids en `.env` ([Manual técnico](MANUAL_TECNICO.md#4-conexión-con-invgate)). Sin credenciales, el PoC corre con `TICKETING_PROVIDER=demo|simulated` y el LLM mock.

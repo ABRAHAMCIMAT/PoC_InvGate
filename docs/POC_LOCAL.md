@@ -2,7 +2,7 @@
 
 ## Requisitos
 
-- Python 3.15+
+- Python 3.15+ (versión de CI y Docker; en desarrollo también funciona 3.12)
 - Docker (opcional, para `docker compose`)
 - Ollama o Jan con Llama 3.1 8B (opcional; sin ellos se usa el LLM mock)
 
@@ -11,6 +11,12 @@
 ```bash
 make install
 make local-up
+```
+
+`make local-up` no lee `.env`. Si lo tienes configurado, arranca así:
+
+```bash
+uvicorn backend.server:app --host 0.0.0.0 --port 8000 --env-file .env
 ```
 
 - Chat web: `http://127.0.0.1:8000/`
@@ -26,6 +32,8 @@ make api-test
 ```bash
 docker compose up --build
 ```
+
+Compose sí lee `.env` para las variables del contenedor.
 
 ## Poblar el dashboard
 
@@ -68,4 +76,8 @@ En el chat web, escribe la clave en **API key**. Con `APP_ENV=production`, la AP
 
 ## InvGate real y Teams
 
-Ver [`VALIDACION_REAL.md`](VALIDACION_REAL.md).
+La instalación paso a paso está en el [Manual técnico](MANUAL_TECNICO.md), y los resultados contra la demo pública en [`VALIDACION_REAL.md`](VALIDACION_REAL.md).
+
+## Uso
+
+Cómo usar el chat, la aprobación en Teams y el dashboard: [Manual de usuario](MANUAL_USUARIO.md).
