@@ -1,8 +1,15 @@
 # LLMOps
 
+Última actualización: 2026-11-18.
+
 ## Modelo
 
-- **Por defecto:** LLM mock determinista (clasificación por palabras clave), sin credenciales.
+- **Por defecto:** LLM mock determinista (clasificación por palabras clave), sin credenciales:
+  - «producción», «todos los usuarios» → infraestructura, crítica.
+  - «contraseña», «acceso» → acceso, alta.
+  - «instalar», «software», «licencia» → software, media, con aprobación.
+  - «no enciende», «roto», «error» → hardware, alta.
+  - Resto → general, media.
 - **Local:** Llama 3.1 8B vía Ollama (`LLM_PROVIDER=ollama`) o Jan (`LLM_PROVIDER=jan`), con la API `/v1/chat/completions` compatible con OpenAI. `LLM_BASE_URL` y `LLM_MODEL` son opcionales.
 - **Degradación elegante:** si el modelo no responde o devuelve algo inválido, el clasificador usa el mock y su agente pasa a amarillo («LLM no disponible»). El evento cuenta en `degradaciones_llm` del dashboard.
 
@@ -14,8 +21,8 @@ El **Coordinador** ejecuta 7 agentes en orden, y cada uno devuelve rol, salida, 
 |---|---|---|
 | Clasificador | Categoría, prioridad y si requiere aprobación (LLM) | Respuesta no reconocida o LLM degradado |
 | Diagnóstico | Causa raíz probable (reglas, o LLM si hay uno real) | No se pudo determinar la causa |
-| Políticas | Aplica la política de aprobación (el software siempre se aprueba) | — |
-| Ejecución | Crea el ticket y, si aplica, abre la aprobación y avisa al manager | Espera aprobación / falla la creación o la aprobación (rojo) |
+| Políticas | Aplica la política de aprobación: software, licencias y permisos elevados requieren aprobación del manager | — |
+| Ejecución | Crea el ticket y, si aplica, abre la aprobación (o reutiliza la del flujo de InvGate) y avisa al manager | Espera aprobación / falla la creación o la aprobación (rojo) |
 | Conocimiento | Busca un artículo en `backend/agents/kb_articles.json` y lo comenta en el ticket | No hay artículo aplicable |
 | Seguimiento | Programa el seguimiento | Espera aprobación / no hay ticket (rojo) |
 | Escalación | Nivel 2 (prioridad alta o fallo) o Nivel 3 (crítica) | Hubo escalación |

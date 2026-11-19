@@ -1,6 +1,8 @@
 # Validación en real: InvGate y Microsoft Teams
 
-Los criterios 2 y 6 del PoC requieren una instancia de InvGate y un tenant de Microsoft 365. Esta guía explica cómo validarlos con credenciales reales; los resultados contra la demo pública están en los apartados 1.5 y 2.5.
+Última actualización: 2026-11-18.
+
+Los criterios 2 y 6 del PoC requieren una instancia de InvGate y un tenant de Microsoft 365. Esta guía explica cómo validarlos con credenciales reales. Los resultados contra la demo pública están en los apartados 1.5 y 2.5: **ambos criterios se cumplen**, con Basic auth y con OAuth 2.0. La guía de instalación completa, con la resolución de problemas, está en el [Manual técnico](MANUAL_TECNICO.md).
 
 ## 1. InvGate Service Management (criterio 2)
 
@@ -77,8 +79,8 @@ Validado contra `https://webdemo.cloud.invgate.net` con Basic auth (credencial d
 Teams necesita llegar al endpoint `/api/messages`:
 
 ```bash
-make local-up
-cloudflared tunnel --url http://localhost:8000   # o: ngrok http 8000
+uvicorn backend.server:app --port 8000 --env-file .env
+cloudflared tunnel --protocol http2 --url http://localhost:8000   # o: ngrok http 8000
 ```
 
 Anota la URL pública como `PUBLIC_BASE_URL`.
@@ -87,7 +89,7 @@ Anota la URL pública como `PUBLIC_BASE_URL`.
 
 1. En Azure Portal, crea un recurso **Azure Bot** de tipo *Single Tenant*.
 2. En **Configuration**, pon `https://<PUBLIC_BASE_URL>/api/messages` como *Messaging endpoint*.
-3. Copia el *Microsoft App ID* y crea un *client secret*:
+3. Copia el *Microsoft App ID* y crea un *client secret*. Usa su **Value**, no el *Secret ID*:
 
 ```bash
 TEAMS_BOT_APP_ID=...
@@ -135,3 +137,5 @@ Sin bot, `NOTIFY_CHANNEL=webhook` con `TEAMS_WORKFLOW_URL` publica un aviso en u
 4. Desactiva el *Automatic Analysis* de SonarCloud, porque el análisis lo hace el workflow.
 
 Mientras el secreto no exista, el workflow pasa con un aviso en lugar de fallar.
+
+**Estado:** configurado. El workflow usa `SonarSource/sonarqube-scan-action` (Java 21), importa la cobertura de pytest y el Quality Gate está en verde. También se puede lanzar a mano (`workflow_dispatch`).
