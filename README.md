@@ -1,7 +1,6 @@
 # Valkiria InvGate PoC
 
-Asistente de mesa de ayuda **multiagente** para **InvGate Service Management**: el empleado describe su problema en un chat, el PoC crea y sigue el ticket en InvGate y, si hace falta, pide la aprobación del manager en **Microsoft Teams**. Replica el PoC de `valkiria_servitonic` (ServiceTonic) sobre InvGate.
-
+Asistente de mesa de ayuda **multiagente** para **InvGate Service Management**: el empleado describe su problema en un chat, el PoC crea y sigue el ticket en InvGate y, si hace falta, pide la aprobación del manager en **Microsoft Teams**. 
 ## Qué hace el PoC
 
 **Para el solicitante (chat web)**
